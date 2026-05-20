@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Figurinhas Copa 2026 - Álbum Panini
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Álbum de figurinhas digital inspirado no álbum oficial Panini da Copa do Mundo 2026. Gerencie sua coleção, marque repetidas e acompanhe seu progresso.
 
-Currently, two official plugins are available:
+## Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 🎨 **Visual realista** - Design idêntico ao álbum Panini com páginas, slots e stickers com cores das bandeiras
+- 🌍 **48 seleções** + seção especial FIFA = **670 figurinhas**
+- 📱 **Responsivo** - funciona perfeitamente em desktop e mobile
+- ☁️ **Sincronização Supabase** - sua coleção salva na nuvem (opcional)
+- 📦 **Offline-first** - funciona sem internet, sincroniza quando online
+- 🏷️ **Controle de repetidas** - marque quantas repetidas de cada figurinha você tem
 
-## React Compiler
+## Tecnologias
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- Vite 8
+- Tailwind CSS 3
+- Supabase (persistência opcional)
+- Lucide React (ícones)
+- Deploy via Vercel
 
-## Expanding the ESLint configuration
+## Começando
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Instalar dependências
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Desenvolvimento
+npm run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Build
+npm run build
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Preview do build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Supabase (opcional)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Para ativar a sincronização na nuvem:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Crie um projeto gratuito em [supabase.com](https://supabase.com)
+2. Execute o schema em `supabase/migrations/001_init.sql` no SQL Editor
+3. Execute o seed em `supabase/seed.sql` para popular os dados
+4. Copie `.env.example` para `.env` e preencha com suas credenciais:
+   ```
+   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+   VITE_SUPABASE_ANON_KEY=sua-chave-anon
+   ```
+
+## Deploy na Vercel
+
+1. Faça push do repositório para o GitHub
+2. Importe o projeto na [Vercel](https://vercel.com/new)
+3. Adicione as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
+4. Deploy automático ativado!
+
+## Estrutura
+
+```
+src/
+  components/     # Componentes React
+    AlbumPages.tsx    # Páginas do álbum com grid de stickers
+    Sidebar.tsx       # Navegação entre seções
+    StickerCard.tsx   # Card individual de figurinha
+    StickerModal.tsx  # Modal de detalhes da figurinha
+  data/
+    sections.ts       # Dados das seleções (cores, bandeiras)
+  hooks/
+    useCollection.ts  # Gerenciamento de estado + sync Supabase
+  lib/
+    supabase.ts       # Cliente Supabase
+  App.tsx             # Componente principal
+  index.css           # Estilos globais
+supabase/
+  migrations/001_init.sql  # Schema do banco
+  seed.sql                  # Dados iniciais
 ```
