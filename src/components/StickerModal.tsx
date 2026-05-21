@@ -1,6 +1,7 @@
 import { X, Minus, Plus, Trophy, Layers, Shield, Camera } from 'lucide-react';
 import { getSection } from '../data/sections';
 import { getStickerInfo, getStickerType } from '../data/stickers';
+import { getStickerImageUrl } from '../data/stickerImage';
 
 interface StickerModalProps {
   stickerId: string;
@@ -53,66 +54,82 @@ export function StickerModal({ stickerId, isCollected, repeatedCount, onClose, o
           {/* Sticker preview */}
           <div className="flex flex-col items-center mb-6 pt-2">
             <div className="relative aspect-[3/4] w-40 rounded-sm border-[4px] border-white shadow-sticker mb-4 transform rotate-2 hover:rotate-0 transition-transform duration-300 overflow-hidden">
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1] || colors[0]} 50%, ${colors[2] || colors[0]} 100%)`
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/10 pointer-events-none" />
+              {(() => {
+                const imgUrl = getStickerImageUrl(stickerId, 'modal');
+                if (imgUrl) {
+                  return (
+                    <img
+                      src={imgUrl}
+                      alt={displayName}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  );
+                }
+                return (
+                  <>
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1] || colors[0]} 50%, ${colors[2] || colors[0]} 100%)`
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/10 pointer-events-none" />
 
-              {/* Number watermark */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-6xl font-black opacity-[0.12] select-none" style={{ color: colors[2] || '#000' }}>
-                  {number}
-                </span>
-              </div>
+                    {/* Number watermark */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-6xl font-black opacity-[0.12] select-none" style={{ color: colors[2] || '#000' }}>
+                        {number}
+                      </span>
+                    </div>
 
-              {/* Top info */}
-              <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
-                <span className="text-[11px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] uppercase">
-                  {isTournament || isMuseum ? 'FWC' : sectionId}
-                </span>
-                <span className="text-xl leading-none opacity-80">{section.flag}</span>
-              </div>
+                    {/* Top info */}
+                    <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
+                      <span className="text-[11px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] uppercase">
+                        {isTournament || isMuseum ? 'FWC' : sectionId}
+                      </span>
+                      <span className="text-xl leading-none opacity-80">{section.flag}</span>
+                    </div>
 
-              {/* Player/Sticker name */}
-              {info && !isEmblem && !isPhoto && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-3">
-                  <span className="text-sm font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] text-center leading-tight">
-                    {displayName}
-                  </span>
-                  {info.position && (
-                    <span className="text-[10px] font-bold text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] mt-0.5 uppercase tracking-wider">
-                      {info.position}
-                    </span>
-                  )}
-                </div>
-              )}
+                    {/* Player/Sticker name */}
+                    {info && !isEmblem && !isPhoto && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center px-3">
+                        <span className="text-sm font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] text-center leading-tight">
+                          {displayName}
+                        </span>
+                        {info.position && (
+                          <span className="text-[10px] font-bold text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] mt-0.5 uppercase tracking-wider">
+                            {info.position}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
-              {isEmblem && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex flex-col items-center">
-                    <Shield size={32} className="text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1" />
-                    <span className="text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase">Emblema</span>
-                  </div>
-                </div>
-              )}
+                    {isEmblem && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex flex-col items-center">
+                          <Shield size={32} className="text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1" />
+                          <span className="text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase">Emblema</span>
+                        </div>
+                      </div>
+                    )}
 
-              {isPhoto && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex flex-col items-center">
-                    <Camera size={32} className="text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1" />
-                    <span className="text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase">Foto da Equipe</span>
-                  </div>
-                </div>
-              )}
+                    {isPhoto && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex flex-col items-center">
+                          <Camera size={32} className="text-white/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1" />
+                          <span className="text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase">Foto da Equipe</span>
+                        </div>
+                      </div>
+                    )}
 
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-5 pb-1.5 px-2">
-                <div className="text-[10px] font-bold text-white text-center uppercase drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
-                  {sectionId} &middot; {number}
-                </div>
-              </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-5 pb-1.5 px-2">
+                      <div className="text-[10px] font-bold text-white text-center uppercase drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
+                        {sectionId} &middot; {number}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <h2 className="text-xl font-black text-panini-navy uppercase tracking-tight mb-0.5 text-center leading-tight px-2">

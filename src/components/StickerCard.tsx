@@ -1,5 +1,6 @@
 import { getSection } from '../data/sections';
 import { getStickerInfo, getStickerType } from '../data/stickers';
+import { getStickerImageUrl } from '../data/stickerImage';
 import type { Section } from '../data/sections';
 
 interface StickerCardProps {
@@ -37,7 +38,7 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
           : 'bg-panini-slot border-2 border-dashed border-panini-navy/20 hover:border-panini-navy/40 hover:bg-panini-navy/5'}
       `}>
         {isCollected ? (
-          <StickerCollected section={section} number={number} info={info} type={type} repeatedCount={repeatedCount} />
+          <StickerCollected section={section} number={number} info={info} type={type} repeatedCount={repeatedCount} stickerId={stickerId} />
         ) : (
           <StickerEmpty section={section} number={number} />
         )}
@@ -46,9 +47,10 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
   );
 }
 
-function StickerCollected({ section, number, info, type, repeatedCount }: {
-  section: Section; number: number; info?: { name: string; position?: string }; type: string; repeatedCount: number
+function StickerCollected({ section, number, info, type, repeatedCount, stickerId }: {
+  section: Section; number: number; info?: { name: string; position?: string }; type: string; repeatedCount: number; stickerId: string
 }) {
+  const imageUrl = getStickerImageUrl(stickerId, 'card');
   const isEmblem = type === 'emblem';
   const isPhoto = type === 'photo';
   const isTournament = type === 'tournament';
@@ -56,6 +58,30 @@ function StickerCollected({ section, number, info, type, repeatedCount }: {
 
   const displayName = info?.name || (isEmblem ? `Escudo ${section.name}` : isPhoto ? `${section.name} — Foto` : `Fig. ${number}`);
 
+  // Real sticker image
+  if (imageUrl) {
+    return (
+      <>
+        <div className="absolute inset-0 sticker-shine">
+          <img
+            src={imageUrl}
+            alt={displayName}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10 pointer-events-none" />
+
+        {repeatedCount > 0 && (
+          <div className="absolute -top-2 -right-2 bg-gradient-to-br from-panini-gold to-yellow-600 text-panini-navy text-[11px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20">
+            +{repeatedCount}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Fallback: gradient design
   return (
     <>
       <div
@@ -106,7 +132,6 @@ function StickerCollected({ section, number, info, type, repeatedCount }: {
         </div>
       </div>
 
-      {/* Repeated badge */}
       {repeatedCount > 0 && (
         <div className="absolute -top-2 -right-2 bg-gradient-to-br from-panini-gold to-yellow-600 text-panini-navy text-[11px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg border-2 border-white z-20">
           +{repeatedCount}
