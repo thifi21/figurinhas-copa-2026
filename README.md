@@ -1,11 +1,14 @@
 # Figurinhas Copa 2026 - Álbum Panini
 
-Álbum de figurinhas digital inspirado no álbum oficial Panini da Copa do Mundo 2026. Gerencie sua coleção, marque repetidas e acompanhe seu progresso.
+Álbum de figurinhas digital com as imagens reais do álbum oficial Panini da Copa do Mundo 2026. Gerencie sua coleção, busque jogadores, marque repetidas e acompanhe seu progresso.
 
 ## Características
 
-- 🎨 **Visual realista** - Design idêntico ao álbum Panini com páginas, slots e stickers com cores das bandeiras
-- 🌍 **48 seleções** + seção especial FIFA = **670 figurinhas**
+- 🖼️ **Imagens reais** - Figurinhas com as fotos oficiais Panini via worldtradingcards.com
+- 🎨 **Visual realista** - Design idêntico ao álbum Panini com páginas, slots e cores das bandeiras
+- 🌍 **48 seleções** + seção especial FIFA + museu = **980 figurinhas**
+- 🔍 **Busca integrada** - Encontre jogadores por nome, time ou posição
+- 🔐 **Tela de login** - Tema Copa 2026 com entrada personalizada
 - 📱 **Responsivo** - funciona perfeitamente em desktop e mobile
 - ☁️ **Sincronização Supabase** - sua coleção salva na nuvem (opcional)
 - 📦 **Offline-first** - funciona sem internet, sincroniza quando online
@@ -18,6 +21,7 @@
 - Tailwind CSS 3
 - Supabase (persistência opcional)
 - Lucide React (ícones)
+- Shopify CDN (imagens das figurinhas)
 - Deploy via Vercel
 
 ## Começando
@@ -60,19 +64,25 @@ Para ativar a sincronização na nuvem:
 
 ```
 src/
-  components/     # Componentes React
-    AlbumPages.tsx    # Páginas do álbum com grid de stickers
-    Sidebar.tsx       # Navegação entre seções
-    StickerCard.tsx   # Card individual de figurinha
-    StickerModal.tsx  # Modal de detalhes da figurinha
+  components/          # Componentes React
+    AlbumPages.tsx         # Páginas do álbum com grid de stickers
+    LoginScreen.tsx        # Tela de login temática Copa 2026
+    SearchBar.tsx          # Barra de busca de figurinhas
+    Sidebar.tsx            # Navegação entre seções
+    StickerCard.tsx        # Card individual de figurinha
+    StickerModal.tsx       # Modal de detalhes da figurinha
   data/
-    sections.ts       # Dados das seleções (cores, bandeiras)
+    sections.ts            # Dados das seleções (cores, bandeiras)
+    stickers.ts            # Nomes e posições dos 980 jogadores
+    stickerImages.ts       # Mapeamento stickerId → URL das imagens reais
+    stickerImage.ts        # Utilitário de resolução de imagem
   hooks/
-    useCollection.ts  # Gerenciamento de estado + sync Supabase
+    useAuth.ts             # Hook de autenticação (localStorage)
+    useCollection.ts       # Gerenciamento de estado + sync Supabase
   lib/
-    supabase.ts       # Cliente Supabase
-  App.tsx             # Componente principal
-  index.css           # Estilos globais
+    supabase.ts            # Cliente Supabase
+  App.tsx                  # Componente principal
+  index.css                # Estilos globais
 supabase/
   migrations/001_init.sql  # Schema do banco
   seed.sql                  # Dados iniciais
