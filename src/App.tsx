@@ -1,12 +1,17 @@
 import { useState, useCallback } from 'react';
-import { Menu, Cloud, CloudOff } from 'lucide-react';
+import { Menu, Cloud, CloudOff, Search } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AlbumPages } from './components/AlbumPages';
 import { StickerModal } from './components/StickerModal';
+import { SearchBar } from './components/SearchBar';
+import { LoginScreen } from './components/LoginScreen';
 import { useCollection } from './hooks/useCollection';
+import { useAuth } from './hooks/useAuth';
 import { SECTIONS, TOTAL_STICKERS } from './data/sections';
 
 export default function App() {
+  const { isLoggedIn, username, login, register, logout } = useAuth();
+
   const {
     collected, repeated, isCollected, getRepeated,
     toggleCollected, addRepeated, removeRepeated,
@@ -17,6 +22,12 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={login} onRegister={register} />;
+  }
 
   const handleSectionChange = useCallback((id: string) => {
     setActiveSectionId(id);
@@ -63,6 +74,18 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Search toggle (mobile) + search bar (desktop) */}
+            <button
+              className="sm:hidden p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <Search size={18} className="text-panini-lightgold" />
+            </button>
+
+            <div className="hidden sm:flex">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
+
             {/* Sync indicator */}
             {hasSupabase && (
               <div className={`hidden sm:flex items-center gap-1 text-[10px] font-bold ${syncing ? 'text-yellow-400' : 'text-green-400/70'}`}>
@@ -93,7 +116,20 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {/* User greeting */}
+        <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider mr-2">
+          <span>{username}</span>
+          <button onClick={logout} className="text-white/20 hover:text-white/50 transition-colors">[sair]</button>
+        </div>
       </header>
+
+      {/* Mobile search bar */}
+      {showSearch && (
+        <div className="sm:hidden px-3 py-2 bg-panini-navy/95 border-b border-white/10 flex-shrink-0">
+          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        </div>
+      )}
 
       {/* Main layout */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -112,6 +148,7 @@ export default function App() {
           collected={collected}
           repeated={repeated}
           onShowModal={handleShowModal}
+          searchQuery={searchQuery}
         />
       </div>
 

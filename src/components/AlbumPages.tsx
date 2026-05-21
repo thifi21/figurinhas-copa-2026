@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
 import { StickerCard } from './StickerCard';
-import { getSection } from '../data/sections';
+import { getSection, SECTIONS } from '../data/sections';
+import { getStickerInfo } from '../data/stickers';
 
 const STICKERS_PER_PAGE = 10;
 
@@ -12,11 +13,11 @@ interface AlbumPagesProps {
   collected: Set<string>;
   repeated: Record<string, number>;
   onShowModal: (id: string) => void;
+  searchQuery: string;
 }
 
-export function AlbumPages({ activeSectionId, currentPage, onPageChange, collected, repeated, onShowModal }: AlbumPagesProps) {
+export function AlbumPages({ activeSectionId, currentPage, onPageChange, collected, repeated, onShowModal, searchQuery }: AlbumPagesProps) {
   const section = getSection(activeSectionId);
-  const totalPages = Math.ceil(section.count / STICKERS_PER_PAGE);
 
   const stickers = useMemo(() => {
     return Array.from({ length: section.count }, (_, i) => ({
@@ -25,10 +26,47 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     }));
   }, [section]);
 
+  // Filter stickers by search query
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+
+    const q = searchQuery.toLowerCase().trim();
+    const results: { id: string; number: number; sectionId: string; teamName: string }[] = [];
+
+    for (const sec of SECTIONS) {
+      for (let i = 1; i <= sec.count; i++) {
+        const stickerId = `${sec.id} ${i}`;
+        const info = getStickerInfo(stickerId);
+        const matchName = info?.name.toLowerCase().includes(q);
+        const matchSection = sec.id.toLowerCase().includes(q);
+        const matchTeam = sec.name.toLowerCase().includes(q);
+        const matchPosition = info?.position?.toLowerCase().includes(q);
+
+        if (matchName || matchSection || matchTeam || matchPosition) {
+          results.push({ id: stickerId, number: i, sectionId: sec.id, teamName: sec.name });
+        }
+      }
+    }
+
+    return results.sort((a, b) => a.id.localeCompare(b.id));
+  }, [searchQuery]);
+
+  const displayStickers = filtered || stickers;
+  const isFiltering = filtered !== null;
+
+  const totalPages = isFiltering
+    ? Math.ceil(displayStickers.length / STICKERS_PER_PAGE)
+    : Math.ceil(section.count / STICKERS_PER_PAGE);
+
   const pageStickers = useMemo(() => {
     const start = currentPage * STICKERS_PER_PAGE;
-    return stickers.slice(start, start + STICKERS_PER_PAGE);
-  }, [stickers, currentPage]);
+    return displayStickers.slice(start, start + STICKERS_PER_PAGE);
+  }, [displayStickers, currentPage]);
+
+  // When filtering resets, reset page
+  if (!searchQuery.trim() && currentPage > 0 && currentPage >= Math.ceil(section.count / STICKERS_PER_PAGE)) {
+    onPageChange(0);
+  }
 
   const secCollected = stickers.filter(s => collected.has(s.id)).length;
   const secRepeated = stickers.reduce((acc, s) => acc + (repeated[s.id] || 0), 0);
@@ -48,10 +86,12 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
             <span className="text-lg leading-none">{section.flag}</span>
             <div>
               <h2 className="text-base sm:text-lg font-black text-panini-navy uppercase tracking-tight leading-tight">
-                {section.name}
+                {isFiltering ? 'Resultados da Busca' : section.name}
               </h2>
               <p className="text-[10px] font-bold text-panini-burgundy uppercase tracking-wider">
-                {secCollected}/{section.count} coladas &middot; {secRepeated} repetidas
+                {isFiltering
+                  ? `${displayStickers.length} figurinhas encontradas`
+                  : `${secCollected}/${section.count} coladas · ${secRepeated} repetidas`}
               </p>
             </div>
           </div>
@@ -88,7 +128,7 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
               <div className="flex items-center justify-between px-5 py-2 border-b border-panini-navy/5">
                 <div className="w-8 h-0.5 bg-panini-gold/30 rounded-full" />
                 <span className="text-[10px] font-bold text-panini-navy/30 uppercase tracking-[0.2em]">
-                  {section.name} &middot; {section.confederation}
+                  {isFiltering ? 'Busca' : `${section.name} · ${section.confederation}`}
                 </span>
                 <div className="w-8 h-0.5 bg-panini-gold/30 rounded-full" />
               </div>
@@ -101,7 +141,7 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
                       <StickerCard
                         key={s.id}
                         stickerId={s.id}
-                        sectionId={section.id}
+                        sectionId={'sectionId' in s ? (s as any).sectionId : section.id}
                         number={s.number}
                         isCollected={collected.has(s.id)}
                         repeatedCount={repeated[s.id] || 0}
@@ -110,8 +150,16 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
                     ))}
                   </div>
                 ) : (
-                  <div className="py-16 text-center">
-                    <p className="text-panini-navy/30 font-bold text-lg">Fim das figurinhas desta seção</p>
+                  <div className="py-16 text-center flex flex-col items-center gap-3">
+                    {isFiltering ? (
+                      <>
+                        <SearchX size={40} className="text-panini-navy/20" />
+                        <p className="text-panini-navy/30 font-bold text-lg">Nenhuma figurinha encontrada</p>
+                        <p className="text-panini-navy/20 text-xs font-bold">Tente outro termo de busca</p>
+                      </>
+                    ) : (
+                      <p className="text-panini-navy/30 font-bold text-lg">Fim das figurinhas desta seção</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -119,11 +167,13 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
               {/* Page footer */}
               <div className="flex items-center justify-between px-5 py-2 border-t border-panini-navy/5">
                 <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                  {section.id}
+                  {isFiltering ? 'Busca' : section.id}
                 </span>
-                <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                  {currentPage * STICKERS_PER_PAGE + 1}-{Math.min((currentPage + 1) * STICKERS_PER_PAGE, section.count)}
-                </span>
+                {displayStickers.length > 0 && (
+                  <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
+                    {currentPage * STICKERS_PER_PAGE + 1}-{Math.min((currentPage + 1) * STICKERS_PER_PAGE, displayStickers.length)}
+                  </span>
+                )}
                 <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
                   Fig. Copa 2026
                 </span>
