@@ -1,4 +1,5 @@
 import { getSection } from '../data/sections';
+import { getStickerInfo, getStickerType } from '../data/stickers';
 import type { Section } from '../data/sections';
 
 interface StickerCardProps {
@@ -10,16 +11,23 @@ interface StickerCardProps {
   onShowModal: (id: string) => void;
 }
 
+const POSITION_LABELS: Record<string, string> = {
+  'Goleiro': 'GK',
+  'Zagueiro': 'CB',
+  'Lateral': 'FB',
+  'Meio-campista': 'MF',
+  'Atacante': 'FW',
+};
+
 export function StickerCard({ stickerId, sectionId, number, isCollected, repeatedCount, onShowModal }: StickerCardProps) {
   const section = getSection(sectionId);
+  const info = getStickerInfo(stickerId);
+  const type = getStickerType(number);
 
   return (
     <button
       onClick={() => onShowModal(stickerId)}
-      className={`
-        group relative w-full perspective-1000
-        ${isCollected ? 'animate-sticker-place' : ''}
-      `}
+      className="group relative w-full perspective-1000"
     >
       <div className={`
         relative aspect-[3/4] w-full rounded-sm overflow-hidden
@@ -29,7 +37,7 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
           : 'bg-panini-slot border-2 border-dashed border-panini-navy/20 hover:border-panini-navy/40 hover:bg-panini-navy/5'}
       `}>
         {isCollected ? (
-          <StickerCollected section={section} number={number} repeatedCount={repeatedCount} />
+          <StickerCollected section={section} number={number} info={info} type={type} repeatedCount={repeatedCount} />
         ) : (
           <StickerEmpty section={section} number={number} />
         )}
@@ -38,42 +46,63 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
   );
 }
 
-function StickerCollected({ section, number, repeatedCount }: { section: Section; number: number; repeatedCount: number }) {
+function StickerCollected({ section, number, info, type, repeatedCount }: {
+  section: Section; number: number; info?: { name: string; position?: string }; type: string; repeatedCount: number
+}) {
+  const isEmblem = type === 'emblem';
+  const isPhoto = type === 'photo';
+  const isTournament = type === 'tournament';
+  const isMuseum = type === 'museum';
+
+  const displayName = info?.name || (isEmblem ? `Escudo ${section.name}` : isPhoto ? `${section.name} — Foto` : `Fig. ${number}`);
+
   return (
     <>
-      {/* Flag background gradient */}
       <div
         className="absolute inset-0 opacity-90"
         style={{
           background: `linear-gradient(135deg, ${section.colors[0]} 0%, ${section.colors[1] || section.colors[0]} 50%, ${section.colors[2] || section.colors[0]} 100%)`
         }}
       />
-
-      {/* Glossy overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-black/10 pointer-events-none sticker-shine" />
 
-      {/* Number */}
+      {/* Large number watermark */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <span
-          className="text-5xl sm:text-6xl font-black opacity-[0.15] select-none"
-          style={{ color: section.colors[2] || '#000' }}
-        >
+        <span className="text-5xl sm:text-6xl font-black opacity-[0.12] select-none" style={{ color: section.colors[2] || '#000' }}>
           {number}
         </span>
       </div>
 
-      {/* Section code */}
-      <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-between items-start">
+      {/* Top section code + flag */}
+      <div className="absolute top-1.5 left-1.5 right-1.5 flex justify-between items-start z-10">
         <span className="text-[9px] sm:text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] uppercase tracking-tighter">
-          {section.id}
+          {isTournament || isMuseum ? 'FWC' : section.id}
         </span>
         <span className="text-[16px] leading-none opacity-80">{section.flag}</span>
       </div>
 
+      {/* Sticker name */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-2 z-10">
+        {isEmblem && <span className="text-xs sm:text-sm font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase text-center leading-tight">Emblema</span>}
+        {isPhoto && <span className="text-xs sm:text-sm font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] uppercase text-center leading-tight">Foto da Equipe</span>}
+        {!isEmblem && !isPhoto && !isTournament && !isMuseum && info && (
+          <>
+            <span className="text-[10px] sm:text-xs font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] text-center leading-tight px-1">
+              {displayName}
+            </span>
+            {info.position && (
+              <span className="text-[8px] font-bold text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] mt-0.5 uppercase tracking-wider">
+                {POSITION_LABELS[info.position] || info.position}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+
       {/* Bottom bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-4 pb-1 px-1.5">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent pt-4 pb-1 px-1.5 z-10">
         <div className="text-[8px] sm:text-[9px] font-bold text-white text-center uppercase tracking-tight truncate drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]">
-          Fig. {number}
+          {isEmblem ? `Escudo ${section.id}` : isPhoto ? `${section.id} Foto` : `${section.id} ${number}`}
         </div>
       </div>
 
@@ -84,7 +113,6 @@ function StickerCollected({ section, number, repeatedCount }: { section: Section
         </div>
       )}
 
-      {/* Corner fold effect */}
       <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/40 to-transparent clip-corner" />
     </>
   );

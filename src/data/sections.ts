@@ -8,8 +8,8 @@ export interface Section {
 }
 
 export const SECTIONS: Section[] = [
-  // FIFA Specials
-  { id: 'FWC', name: 'Especiais FIFA', count: 30, confederation: 'FIFA', colors: ['#1A3668', '#D4AF37', '#0d1b2a'], flag: '🏆' },
+  // FIFA Specials (Panini Logo + Tournament + Museum = 20 stickers)
+  { id: 'FWC', name: 'Especiais FIFA', count: 20, confederation: 'FIFA', colors: ['#1A3668', '#D4AF37', '#0d1b2a'], flag: '🏆' },
   // AFC
   { id: 'AUS', name: 'Austrália', count: 20, confederation: 'AFC', colors: ['#00843D', '#FFCD00', '#002664'], flag: '🇦🇺' },
   { id: 'IRN', name: 'Irã', count: 20, confederation: 'AFC', colors: ['#239F40', '#FFFFFF', '#DA0000'], flag: '🇮🇷' },
