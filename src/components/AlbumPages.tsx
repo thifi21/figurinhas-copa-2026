@@ -48,7 +48,10 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
       }
     }
 
-    return results.sort((a, b) => a.id.localeCompare(b.id));
+    return results.sort((a, b) => {
+      if (a.sectionId !== b.sectionId) return a.sectionId.localeCompare(b.sectionId);
+      return a.number - b.number;
+    });
   }, [searchQuery]);
 
   const displayStickers = filtered || stickers;
