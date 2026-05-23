@@ -11,8 +11,10 @@ const STORAGE_KEY_REPEATED = 'panini_2026_repeated_v3';
 
 function loadLocal(): CollectionState {
   try {
-    const collected = new Set<string>(JSON.parse(localStorage.getItem(STORAGE_KEY_COLLECTED) || '[]'));
-    const repeated = JSON.parse(localStorage.getItem(STORAGE_KEY_REPEATED) || '{}');
+    const parsedCollected = JSON.parse(localStorage.getItem(STORAGE_KEY_COLLECTED) || '[]');
+    const collected = new Set<string>(Array.isArray(parsedCollected) ? parsedCollected : []);
+    const parsedRepeated = JSON.parse(localStorage.getItem(STORAGE_KEY_REPEATED) || '{}');
+    const repeated = typeof parsedRepeated === 'object' && parsedRepeated !== null ? parsedRepeated : {};
     return { collected, repeated };
   } catch {
     return { collected: new Set(), repeated: {} };
@@ -24,7 +26,7 @@ function saveLocal(state: CollectionState) {
   localStorage.setItem(STORAGE_KEY_REPEATED, JSON.stringify(state.repeated));
 }
 
-export function useCollection() {
+export function useCollection(user: { id: string } | null) {
   const [state, setState] = useState<CollectionState>(loadLocal);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
@@ -34,25 +36,32 @@ export function useCollection() {
   // Sync from Supabase on mount
   useEffect(() => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) return;
+    if (!supabaseUrl || !user) return;
 
+    const userId = user.id;
     let mounted = true;
 
     async function syncFromServer() {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('collections')
           .select('sticker_id, collected, repeated_count')
-          .eq('device_id', deviceId);
+          .eq('user_id', userId);
 
-        if (!mounted || !data) return;
+        if (!mounted) return;
 
-        const collected = new Set<string>();
-        const repeated: Record<string, number> = {};
+        if (error || !data) {
+          return;
+        }
+
+        const collected = new Set<string>(stateRef.current.collected);
+        const repeated: Record<string, number> = { ...stateRef.current.repeated };
+        let hasServerData = false;
 
         for (const row of data) {
+          hasServerData = true;
           if (row.collected) collected.add(row.sticker_id);
-          if (row.repeated_count > 0) repeated[row.sticker_id] = row.repeated_count;
+          if (row.repeated_count > 0) repeated[row.sticker_id] = Math.max(repeated[row.sticker_id] || 0, row.repeated_count);
         }
 
         const newState = { collected, repeated };
@@ -67,17 +76,18 @@ export function useCollection() {
     syncFromServer();
 
     return () => { mounted = false; };
-  }, [deviceId]);
+  }, [deviceId, user]);
 
   // Debounced sync to Supabase
   const syncToServer = useCallback(async (newState: CollectionState) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) return;
+    if (!supabaseUrl || !user) return;
 
     setSyncing(true);
     try {
       const stickers = [...newState.collected].map(id => ({
         device_id: deviceId,
+        user_id: user.id,
         sticker_id: id,
         collected: true,
         repeated_count: newState.repeated[id] || 0
@@ -87,6 +97,7 @@ export function useCollection() {
         .filter(id => !newState.collected.has(id))
         .map(id => ({
           device_id: deviceId,
+          user_id: user.id,
           sticker_id: id,
           collected: false,
           repeated_count: newState.repeated[id]
@@ -97,10 +108,11 @@ export function useCollection() {
       // Upsert in batches
       for (let i = 0; i < allRecords.length; i += 50) {
         const batch = allRecords.slice(i, i + 50);
-        await supabase.from('collections').upsert(batch, {
+        const { error } = await supabase.from('collections').upsert(batch, {
           onConflict: 'device_id, sticker_id',
           ignoreDuplicates: false
         });
+        if (error) throw error;
       }
 
       setLastSync(new Date());
@@ -109,20 +121,30 @@ export function useCollection() {
     } finally {
       setSyncing(false);
     }
-  }, [deviceId]);
+  }, [deviceId, user]);
 
   const updateState = useCallback((updater: (prev: CollectionState) => CollectionState) => {
-    setState(prev => {
-      const next = updater(prev);
-      saveLocal(next);
+    setState(prev => updater(prev));
+  }, []);
 
-      // Debounce server sync
+  // Sync after state update
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  useEffect(() => {
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      syncToServer(stateRef.current);
+    }, 2000);
+
+    return () => {
       if (syncTimer.current) clearTimeout(syncTimer.current);
-      syncTimer.current = setTimeout(() => syncToServer(next), 2000);
+    };
+  }, [state, syncToServer]);
 
-      return next;
-    });
-  }, [syncToServer]);
+  useEffect(() => {
+    saveLocal(state);
+  }, [state]);
 
   const toggleCollected = useCallback((id: string) => {
     updateState(prev => {

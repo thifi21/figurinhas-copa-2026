@@ -10,13 +10,13 @@ import { useAuth } from './hooks/useAuth';
 import { SECTIONS, TOTAL_STICKERS } from './data/sections';
 
 export default function App() {
-  const { isLoggedIn, username, login, register, logout } = useAuth();
+  const { isLoggedIn, user, loading, login, register, logout } = useAuth();
 
   const {
     collected, repeated, isCollected, getRepeated,
     toggleCollected, addRepeated, removeRepeated,
     syncing, totalCollected
-  } = useCollection();
+  } = useCollection(user);
 
   const [activeSectionId, setActiveSectionId] = useState(SECTIONS[0].id);
   const [currentPage, setCurrentPage] = useState(0);
@@ -24,10 +24,6 @@ export default function App() {
   const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
-
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={login} onRegister={register} />;
-  }
 
   const handleSectionChange = useCallback((id: string) => {
     setActiveSectionId(id);
@@ -39,8 +35,19 @@ export default function App() {
   }, []);
 
   const progress = Math.round((totalCollected / TOTAL_STICKERS) * 100) || 0;
-
   const hasSupabase = !!import.meta.env.VITE_SUPABASE_URL;
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-panini-navy">
+        <div className="w-8 h-8 border-2 border-panini-gold/30 border-t-panini-gold rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={login} onRegister={register} />;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-panini-navy via-[#0f1f35] to-panini-navy font-sans overflow-hidden">
@@ -119,7 +126,7 @@ export default function App() {
 
         {/* User greeting */}
         <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider mr-2">
-          <span>{username}</span>
+          <span>{user?.email ?? ''}</span>
           <button onClick={logout} className="text-white/20 hover:text-white/50 transition-colors">[sair]</button>
         </div>
       </header>

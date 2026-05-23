@@ -1,55 +1,77 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 interface AuthState {
   isLoggedIn: boolean;
-  username: string;
-}
-
-const AUTH_KEY = 'panini_2026_auth';
-
-function loadAuth(): AuthState {
-  try {
-    const data = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
-    return { isLoggedIn: !!data.loggedIn, username: data.username || '' };
-  } catch {
-    return { isLoggedIn: false, username: '' };
-  }
-}
-
-function saveAuth(username: string) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username }));
-}
-
-function clearAuth() {
-  localStorage.removeItem(AUTH_KEY);
+  user: User | null;
+  loading: boolean;
 }
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>(loadAuth);
+  const [state, setState] = useState<AuthState>({
+    isLoggedIn: false,
+    user: null,
+    loading: true,
+  });
 
-  const login = useCallback((username: string, password: string) => {
-    const existing = localStorage.getItem(AUTH_KEY);
-    const parsed = existing ? JSON.parse(existing) : null;
+  useEffect(() => {
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setState({
+          isLoggedIn: !!session,
+          user: session?.user ?? null,
+          loading: false,
+        });
+      })
+      .catch(() => setState(s => ({ ...s, loading: false })));
 
-    if (parsed && parsed.loggedIn && parsed.password) {
-      if (password !== parsed.password) return false;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setState({
+        isLoggedIn: !!session,
+        user: session?.user ?? null,
+        loading: false,
+      });
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        return 'Email ou senha incorretos. Verifique e tente novamente.';
+      }
+      return null;
+    } catch (e: any) {
+      return e.message || 'Erro ao fazer login.';
     }
-
-    saveAuth(username);
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username, password }));
-    setState({ isLoggedIn: true, username });
-    return true;
   }, []);
 
-  const register = useCallback((username: string, password: string) => {
-    saveAuth(username);
-    localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username, password }));
-    setState({ isLoggedIn: true, username });
+  const register = useCallback(async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        return error.message;
+      }
+      if (!data.session) {
+        return 'Conta criada! Verifique seu email para confirmar o cadastro.';
+      }
+      return null;
+    } catch (e: any) {
+      return e.message || 'Erro ao criar conta.';
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    clearAuth();
-    setState({ isLoggedIn: false, username: '' });
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
   }, []);
 
   return { ...state, login, register, logout };
