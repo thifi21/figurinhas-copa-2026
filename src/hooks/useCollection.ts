@@ -29,9 +29,11 @@ export function useCollection() {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingStateRef = useRef<CollectionState | null>(null);
+  const syncInFlight = useRef(false);
   const deviceId = getDeviceId();
 
-  // Sync from Supabase on mount
+  // Sync from Supabase on mount — local-first approach
   useEffect(() => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!supabaseUrl) return;
@@ -39,6 +41,16 @@ export function useCollection() {
     let mounted = true;
 
     async function syncFromServer() {
+      const localState = loadLocal();
+      const hasLocalData = localState.collected.size > 0 || Object.keys(localState.repeated).length > 0;
+
+      if (hasLocalData) {
+        // Local data takes precedence to prevent data loss when
+        // previous server sync failed (e.g. tab closed before debounce)
+        setState(localState);
+        return;
+      }
+
       try {
         const { data } = await supabase
           .from('collections')
@@ -69,32 +81,63 @@ export function useCollection() {
     return () => { mounted = false; };
   }, [deviceId]);
 
-  // Debounced sync to Supabase
+  // Flush pending sync before tab closes
+  useEffect(() => {
+    function handleBeforeUnload() {
+      const pending = pendingStateRef.current;
+      if (pending) {
+        saveLocal(pending);
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Sync to Supabase
   const syncToServer = useCallback(async (newState: CollectionState) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!supabaseUrl) return;
 
+    if (syncInFlight.current) {
+      // There's already a sync in progress — the latest state is in pendingStateRef
+      return;
+    }
+
+    syncInFlight.current = true;
     setSyncing(true);
+
     try {
-      const stickers = [...newState.collected].map(id => ({
+      let currentState = newState;
+      const pending = pendingStateRef.current;
+      if (pending) {
+        currentState = pending;
+        pendingStateRef.current = null;
+      }
+
+      const stickers = [...currentState.collected].map(id => ({
         device_id: deviceId,
         sticker_id: id,
         collected: true,
-        repeated_count: newState.repeated[id] || 0
+        repeated_count: currentState.repeated[id] || 0
       }));
 
-      const notCollected = Object.keys(newState.repeated)
-        .filter(id => !newState.collected.has(id))
+      const notCollected = Object.keys(currentState.repeated)
+        .filter(id => !currentState.collected.has(id))
         .map(id => ({
           device_id: deviceId,
           sticker_id: id,
           collected: false,
-          repeated_count: newState.repeated[id]
+          repeated_count: currentState.repeated[id]
         }));
 
       const allRecords = [...stickers, ...notCollected];
 
-      // Upsert in batches
+      if (allRecords.length === 0) {
+        syncInFlight.current = false;
+        setSyncing(false);
+        return;
+      }
+
       for (let i = 0; i < allRecords.length; i += 50) {
         const batch = allRecords.slice(i, i + 50);
         await supabase.from('collections').upsert(batch, {
@@ -104,10 +147,17 @@ export function useCollection() {
       }
 
       setLastSync(new Date());
+      pendingStateRef.current = null;
     } catch {
       // Silently fail - data is saved locally
     } finally {
+      syncInFlight.current = false;
       setSyncing(false);
+
+      // If new state was queued while we were syncing, fire again
+      if (pendingStateRef.current) {
+        syncToServer(pendingStateRef.current);
+      }
     }
   }, [deviceId]);
 
@@ -116,9 +166,17 @@ export function useCollection() {
       const next = updater(prev);
       saveLocal(next);
 
-      // Debounce server sync
+      // Keep track of latest state for pending sync
+      pendingStateRef.current = next;
+
       if (syncTimer.current) clearTimeout(syncTimer.current);
-      syncTimer.current = setTimeout(() => syncToServer(next), 2000);
+      syncTimer.current = setTimeout(() => {
+        const latest = pendingStateRef.current;
+        if (latest) {
+          pendingStateRef.current = null;
+          syncToServer(latest);
+        }
+      }, 1000);
 
       return next;
     });

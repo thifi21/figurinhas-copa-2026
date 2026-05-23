@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
 
 interface AuthState {
   isLoggedIn: boolean;
@@ -16,16 +16,13 @@ function loadAuth(): AuthState {
   }
 }
 
-function saveAuth(username: string) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username }));
-}
-
 function clearAuth() {
   localStorage.removeItem(AUTH_KEY);
 }
 
 export function useAuth() {
-  const [state, setState] = useState<AuthState>(loadAuth);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const { isLoggedIn, username } = loadAuth();
 
   const login = useCallback((username: string, password: string) => {
     const existing = localStorage.getItem(AUTH_KEY);
@@ -35,22 +32,20 @@ export function useAuth() {
       if (password !== parsed.password) return false;
     }
 
-    saveAuth(username);
     localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username, password }));
-    setState({ isLoggedIn: true, username });
+    forceUpdate();
     return true;
   }, []);
 
   const register = useCallback((username: string, password: string) => {
-    saveAuth(username);
     localStorage.setItem(AUTH_KEY, JSON.stringify({ loggedIn: true, username, password }));
-    setState({ isLoggedIn: true, username });
+    forceUpdate();
   }, []);
 
   const logout = useCallback(() => {
     clearAuth();
-    setState({ isLoggedIn: false, username: '' });
+    forceUpdate();
   }, []);
 
-  return { ...state, login, register, logout };
+  return { isLoggedIn, username, login, register, logout };
 }
