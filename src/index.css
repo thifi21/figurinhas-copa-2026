@@ -171,3 +171,23 @@
   transform: translateY(0);
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
+/* ===== Print Styles ===== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 5mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

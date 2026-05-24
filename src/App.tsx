@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { Menu, Cloud, CloudOff, Search } from 'lucide-react';
+import { Menu, Cloud, CloudOff, Search, Printer } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AlbumPages } from './components/AlbumPages';
 import { StickerModal } from './components/StickerModal';
 import { SearchBar } from './components/SearchBar';
 import { LoginScreen } from './components/LoginScreen';
+import { PrintableChecklist } from './components/PrintableChecklist';
 import { useCollection } from './hooks/useCollection';
 import { useAuth } from './hooks/useAuth';
 import { SECTIONS, TOTAL_STICKERS } from './data/sections';
@@ -18,6 +19,7 @@ export default function App() {
     syncing, totalCollected
   } = useCollection(user);
 
+  const [view, setView] = useState<'album' | 'print'>('album');
   const [activeSectionId, setActiveSectionId] = useState(SECTIONS[0].id);
   const [currentPage, setCurrentPage] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,6 +49,10 @@ export default function App() {
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={login} onRegister={register} />;
+  }
+
+  if (view === 'print') {
+    return <PrintableChecklist collected={collected} onBack={() => setView('album')} />;
   }
 
   return (
@@ -87,6 +93,15 @@ export default function App() {
               onClick={() => setShowSearch(!showSearch)}
             >
               <Search size={18} className="text-panini-lightgold" />
+            </button>
+
+            <button
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10 flex items-center gap-2"
+              onClick={() => setView('print')}
+              title="Imprimir Checklist PDF"
+            >
+              <Printer size={18} className="text-panini-lightgold" />
+              <span className="hidden sm:inline text-xs font-bold text-panini-lightgold uppercase">PDF</span>
             </button>
 
             <div className="hidden sm:flex">
