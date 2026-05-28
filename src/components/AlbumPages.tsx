@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
 import { StickerCard } from './StickerCard';
 import { getSection, SECTIONS } from '../data/sections';
@@ -66,10 +66,12 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     return displayStickers.slice(start, start + STICKERS_PER_PAGE);
   }, [displayStickers, currentPage]);
 
-  // When filtering resets, reset page
-  if (!searchQuery.trim() && currentPage > 0 && currentPage >= Math.ceil(section.count / STICKERS_PER_PAGE)) {
-    onPageChange(0);
-  }
+  // When filtering resets, reset page (inside useEffect to avoid side-effects during render)
+  useEffect(() => {
+    if (!searchQuery.trim() && currentPage > 0 && currentPage >= Math.ceil(section.count / STICKERS_PER_PAGE)) {
+      onPageChange(0);
+    }
+  }, [searchQuery, currentPage, section.count, onPageChange]);
 
   const secCollected = stickers.filter(s => collected.has(s.id)).length;
   const secRepeated = stickers.reduce((acc, s) => acc + (repeated[s.id] || 0), 0);

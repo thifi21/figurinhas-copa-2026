@@ -1,23 +1,19 @@
 import { useState, useCallback } from 'react';
-import { Menu, Cloud, CloudOff, Search, Printer } from 'lucide-react';
+import { Menu, Cloud, Search, Printer } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AlbumPages } from './components/AlbumPages';
 import { StickerModal } from './components/StickerModal';
 import { SearchBar } from './components/SearchBar';
-import { LoginScreen } from './components/LoginScreen';
 import { PrintableChecklist } from './components/PrintableChecklist';
 import { useCollection } from './hooks/useCollection';
-import { useAuth } from './hooks/useAuth';
 import { SECTIONS, TOTAL_STICKERS } from './data/sections';
 
 export default function App() {
-  const { isLoggedIn, user, loading, login, register, logout } = useAuth();
-
   const {
     collected, repeated, isCollected, getRepeated,
     toggleCollected, addRepeated, removeRepeated,
     syncing, totalCollected
-  } = useCollection(user);
+  } = useCollection();
 
   const [view, setView] = useState<'album' | 'print'>('album');
   const [activeSectionId, setActiveSectionId] = useState(SECTIONS[0].id);
@@ -38,18 +34,6 @@ export default function App() {
 
   const progress = Math.round((totalCollected / TOTAL_STICKERS) * 100) || 0;
   const hasSupabase = !!import.meta.env.VITE_SUPABASE_URL;
-
-  if (loading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-panini-navy">
-        <div className="w-8 h-8 border-2 border-panini-gold/30 border-t-panini-gold rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={login} onRegister={register} />;
-  }
 
   if (view === 'print') {
     return <PrintableChecklist collected={collected} onBack={() => setView('album')} />;
@@ -111,8 +95,8 @@ export default function App() {
             {/* Sync indicator */}
             {hasSupabase && (
               <div className={`hidden sm:flex items-center gap-1 text-[10px] font-bold ${syncing ? 'text-yellow-400' : 'text-green-400/70'}`}>
-                {syncing ? <Cloud size={12} className="animate-pulse" /> : <CloudOff size={12} />}
-                {syncing ? 'Sincronizando...' : 'Online'}
+                {syncing ? <Cloud size={12} className="animate-pulse" /> : <Cloud size={12} />}
+                {syncing ? 'Sincronizando...' : 'Salvo'}
               </div>
             )}
 
@@ -137,12 +121,6 @@ export default function App() {
               <span className="text-base sm:text-xl font-black text-panini-lightgold drop-shadow-md">{progress}%</span>
             </div>
           </div>
-        </div>
-
-        {/* User greeting */}
-        <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider mr-2">
-          <span>{user?.email ?? ''}</span>
-          <button onClick={logout} className="text-white/20 hover:text-white/50 transition-colors">[sair]</button>
         </div>
       </header>
 

@@ -48,25 +48,19 @@ function loadInitial(): CollectionState {
   return local;
 }
 
-export function useCollection(user: { id: string } | null) {
+export function useCollection() {
   const [state, setState] = useState<CollectionState>(loadInitial);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
-  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingStateRef = useRef<CollectionState | null>(null);
   const syncInFlight = useRef(false);
   const deviceId = getDeviceId();
 
-  // Keep stateRef always up-to-date (declared here so it's available everywhere below)
-  const stateRef = useRef(state);
-  stateRef.current = state;
-
   // Sync from Supabase on mount — server wins only if there's no local data
   useEffect(() => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl || !user) return;
+    if (!supabaseUrl) return;
 
-    const userId = user.id;
     let mounted = true;
 
     async function syncFromServer() {
@@ -74,8 +68,7 @@ export function useCollection(user: { id: string } | null) {
       const hasLocalData = localState.collected.size > 0 || Object.keys(localState.repeated).length > 0;
 
       if (hasLocalData) {
-        // Local data takes precedence to prevent data loss when
-        // previous server sync failed (e.g. tab closed before debounce)
+        // Local data takes precedence to prevent data loss
         setState(localState);
         return;
       }
@@ -84,16 +77,14 @@ export function useCollection(user: { id: string } | null) {
         const { data, error } = await supabase
           .from('collections')
           .select('sticker_id, collected, repeated_count')
-          .eq('user_id', userId);
+          .eq('device_id', deviceId);
 
         if (!mounted) return;
+        if (error || !data) return;
 
-        if (error || !data) {
-          return;
-        }
-
-        const collected = new Set<string>(stateRef.current.collected);
-        const repeated: Record<string, number> = { ...stateRef.current.repeated };
+        const localSnapshot = loadLocal();
+        const collected = new Set<string>(localSnapshot.collected);
+        const repeated: Record<string, number> = { ...localSnapshot.repeated };
 
         for (const row of data) {
           if (row.collected) collected.add(row.sticker_id);
@@ -114,12 +105,13 @@ export function useCollection(user: { id: string } | null) {
     syncFromServer();
 
     return () => { mounted = false; };
-  }, [deviceId, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Sync to Supabase ────────────────────────────────────────────────────────
   const syncToServer = useCallback(async (newState: CollectionState) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl || !user) return;
+    if (!supabaseUrl) return;
 
     if (syncInFlight.current) {
       // There's already a sync in progress — store latest state for after
@@ -140,7 +132,6 @@ export function useCollection(user: { id: string } | null) {
 
       const stickers = [...currentState.collected].map(id => ({
         device_id: deviceId,
-        user_id: user.id,
         sticker_id: id,
         collected: true,
         repeated_count: currentState.repeated[id] || 0
@@ -150,7 +141,6 @@ export function useCollection(user: { id: string } | null) {
         .filter(id => !currentState.collected.has(id))
         .map(id => ({
           device_id: deviceId,
-          user_id: user.id,
           sticker_id: id,
           collected: false,
           repeated_count: currentState.repeated[id]
@@ -158,9 +148,7 @@ export function useCollection(user: { id: string } | null) {
 
       const allRecords = [...stickers, ...notCollected];
 
-      if (allRecords.length === 0) {
-        return;
-      }
+      if (allRecords.length === 0) return;
 
       for (let i = 0; i < allRecords.length; i += 50) {
         const batch = allRecords.slice(i, i + 50);
@@ -181,10 +169,12 @@ export function useCollection(user: { id: string } | null) {
 
       // If new state was queued while we were syncing, fire again
       if (pendingStateRef.current) {
-        syncToServer(pendingStateRef.current);
+        const next = pendingStateRef.current;
+        pendingStateRef.current = null;
+        syncToServer(next);
       }
     }
-  }, [deviceId, user]);
+  }, [deviceId]);
 
   // ── Keep pendingStateRef current for beforeunload ───────────────────────────
   useEffect(() => {
@@ -196,18 +186,6 @@ export function useCollection(user: { id: string } | null) {
     saveLocal(state);
   }, [state]);
 
-  // ── Debounced sync to server (2 s after last change) ───────────────────────
-  useEffect(() => {
-    if (syncTimer.current) clearTimeout(syncTimer.current);
-    syncTimer.current = setTimeout(() => {
-      syncToServer(stateRef.current);
-    }, 2000);
-
-    return () => {
-      if (syncTimer.current) clearTimeout(syncTimer.current);
-    };
-  }, [state, syncToServer]);
-
   // ── Flush sync to Supabase before tab/window closes ────────────────────────
   useEffect(() => {
     async function handleBeforeUnload() {
@@ -217,15 +195,14 @@ export function useCollection(user: { id: string } | null) {
       // Always save locally first (synchronous)
       saveLocal(pending);
 
-      // Attempt a best-effort Supabase sync using sendBeacon / fetch keepalive
+      // Attempt a best-effort Supabase sync using fetch keepalive
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey || !user) return;
+      if (!supabaseUrl || !supabaseKey) return;
 
       const allRecords = [
         ...[...pending.collected].map(id => ({
           device_id: deviceId,
-          user_id: user.id,
           sticker_id: id,
           collected: true,
           repeated_count: pending.repeated[id] || 0
@@ -234,7 +211,6 @@ export function useCollection(user: { id: string } | null) {
           .filter(id => !pending.collected.has(id))
           .map(id => ({
             device_id: deviceId,
-            user_id: user.id,
             sticker_id: id,
             collected: false,
             repeated_count: pending.repeated[id]
@@ -243,9 +219,7 @@ export function useCollection(user: { id: string } | null) {
 
       if (allRecords.length === 0) return;
 
-      // Use keepalive fetch so the request survives page unload
       try {
-        // Batch first 50 records (keepalive body limit ~64kb)
         const batch = allRecords.slice(0, 50);
         fetch(`${supabaseUrl}/rest/v1/collections`, {
           method: 'POST',
@@ -265,15 +239,21 @@ export function useCollection(user: { id: string } | null) {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [deviceId, user]);
+  }, [deviceId]);
 
   // ── Mutation helpers ────────────────────────────────────────────────────────
-  const updateState = useCallback((updater: (prev: CollectionState) => CollectionState) => {
-    setState(prev => updater(prev));
-  }, []);
+  // Computes next state synchronously, persists locally, and syncs to server immediately.
+  const applyMutation = useCallback((updater: (prev: CollectionState) => CollectionState) => {
+    setState(prev => {
+      const next = updater(prev);
+      saveLocal(next);
+      syncToServer(next);
+      return next;
+    });
+  }, [syncToServer]);
 
   const toggleCollected = useCallback((id: string) => {
-    updateState(prev => {
+    applyMutation(prev => {
       const next = new Set(prev.collected);
       if (next.has(id)) {
         next.delete(id);
@@ -282,17 +262,17 @@ export function useCollection(user: { id: string } | null) {
       }
       return { ...prev, collected: next };
     });
-  }, [updateState]);
+  }, [applyMutation]);
 
   const addRepeated = useCallback((id: string) => {
-    updateState(prev => ({
+    applyMutation(prev => ({
       ...prev,
       repeated: { ...prev.repeated, [id]: (prev.repeated[id] || 0) + 1 }
     }));
-  }, [updateState]);
+  }, [applyMutation]);
 
   const removeRepeated = useCallback((id: string) => {
-    updateState(prev => {
+    applyMutation(prev => {
       const next = { ...prev.repeated };
       if (next[id] > 1) {
         next[id]--;
@@ -301,7 +281,7 @@ export function useCollection(user: { id: string } | null) {
       }
       return { ...prev, repeated: next };
     });
-  }, [updateState]);
+  }, [applyMutation]);
 
   const isCollected = useCallback((id: string) => state.collected.has(id), [state.collected]);
   const getRepeated = useCallback((id: string) => state.repeated[id] || 0, [state.repeated]);
