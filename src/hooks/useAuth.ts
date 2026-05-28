@@ -74,5 +74,5 @@ export function useAuth() {
     await supabase.auth.signOut();
   }, []);
 
-  return { isLoggedIn, username, login, register, logout };
+  return { ...state, login, register, logout };
 }
