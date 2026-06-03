@@ -8,125 +8,125 @@
 
 export const INITIAL_COLLECTED: string[] = [
   // === Página Inicial / FWC ===
-  'FWC 1', 'FWC 2', 'FWC 7', 'FWC 8',
-  'FWC 9', 'FWC 15', 'FWC 16', 'FWC 18', 'FWC 19',
+  'FWC 1', 'FWC 3', 'FWC 4', 'FWC 7', 'FWC 9', 'FWC 10', 'FWC 11', 'FWC 13', 'FWC 14', 'FWC 18', 'FWC 19',
 
   // === Grupo A ===
-  // México: colunas 1, 2, 6, 7
-  'MEX 1', 'MEX 2', 'MEX 6', 'MEX 7',
-  // África do Sul: colunas 4, 7, 17, 20
-  'RSA 4', 'RSA 7', 'RSA 17', 'RSA 20',
-  // Coreia do Sul: colunas 8, 13
-  'KOR 8', 'KOR 13',
-  // Rep. Tcheca: colunas 1, 2, 11
-  'CZE 1', 'CZE 2', 'CZE 11',
+  // México
+  'MEX 1', 'MEX 2', 'MEX 3', 'MEX 7',
+  // África do Sul
+  'RSA 2', 'RSA 4', 'RSA 7', 'RSA 9', 'RSA 10', 'RSA 11', 'RSA 13', 'RSA 14', 'RSA 17', 'RSA 20',
+  // Coreia do Sul
+  'KOR 5', 'KOR 9', 'KOR 11', 'KOR 12', 'KOR 13', 'KOR 14', 'KOR 15', 'KOR 18', 'KOR 20',
+  // Rep. Tcheca
+  'CZE 1', 'CZE 2', 'CZE 11', 'CZE 17',
 
   // === Grupo B ===
-  // Catar: colunas 1, 3, 7
-  'QAT 1', 'QAT 3', 'QAT 7',
-  // Bósnia: coluna 18
-  'BIH 18',
-  // Suíça: colunas 2, 3, 6, 7, 20
-  'SUI 2', 'SUI 3', 'SUI 6', 'SUI 7', 'SUI 20',
+  // Canadá
+  'CAN 5', 'CAN 6', 'CAN 8', 'CAN 13', 'CAN 14', 'CAN 15',
+  // Bósnia
+  'BIH 11', 'BIH 13', 'BIH 17',
+  // Catar
+  'QAT 1', 'QAT 3', 'QAT 4', 'QAT 6', 'QAT 8', 'QAT 12', 'QAT 13', 'QAT 17', 'QAT 18',
+  // Suíça
+  'SUI 2', 'SUI 3', 'SUI 7', 'SUI 10', 'SUI 13',
 
   // === Grupo C ===
-  // Brasil: colunas 6, 7, 8, 16, 20
-  'BRA 6', 'BRA 7', 'BRA 8', 'BRA 16', 'BRA 20',
-  // Marrocos: colunas 3, 4, 5, 8, 19
-  'MAR 3', 'MAR 4', 'MAR 5', 'MAR 8', 'MAR 19',
-  // Haiti: colunas 3, 4, 13, 20
-  'HAI 3', 'HAI 4', 'HAI 13', 'HAI 20',
-  // Escócia: colunas 4, 5, 18, 20
-  'SCO 4', 'SCO 5', 'SCO 18', 'SCO 20',
+  // Brasil
+  'BRA 6', 'BRA 7', 'BRA 16', 'BRA 20',
+  // Marrocos
+  'MAR 1', 'MAR 7', 'MAR 9', 'MAR 12', 'MAR 20',
+  // Haiti
+  'HAI 1', 'HAI 3', 'HAI 4', 'HAI 5', 'HAI 8', 'HAI 12', 'HAI 20',
+  // Escócia
+  'SCO 1', 'SCO 2', 'SCO 4', 'SCO 7', 'SCO 8', 'SCO 12',
 
   // === Grupo D ===
-  // Estados Unidos: colunas 1, 2, 5, 6, 13, 14, 19
-  'USA 1', 'USA 2', 'USA 5', 'USA 6', 'USA 13', 'USA 14', 'USA 19',
-  // Paraguai: colunas 8, 18
-  'PAR 8', 'PAR 18',
-  // Austrália: colunas 2, 5, 8, 18
-  'AUS 2', 'AUS 5', 'AUS 8', 'AUS 18',
-  // Turquia: colunas 1, 15, 20
-  'TUR 1', 'TUR 15', 'TUR 20',
+  // Estados Unidos
+  'USA 1', 'USA 5', 'USA 11', 'USA 12', 'USA 13', 'USA 14', 'USA 16', 'USA 19',
+  // Paraguai
+  'PAR 6', 'PAR 8', 'PAR 9', 'PAR 12', 'PAR 16',
+  // Austrália
+  'AUS 2', 'AUS 5', 'AUS 8', 'AUS 12', 'AUS 16', 'AUS 17', 'AUS 19',
+  // Turquia
+  'TUR 1', 'TUR 4', 'TUR 13', 'TUR 15',
 
   // === Grupo E ===
-  // Alemanha: colunas 13, 16, 20
-  'GER 13', 'GER 16', 'GER 20',
-  // Curaçao: colunas 8, 14
-  'CUW 8', 'CUW 14',
-  // Costa do Marfim: colunas 4, 11, 16
-  'CIV 4', 'CIV 11', 'CIV 16',
-  // Equador: colunas 1, 8, 11
-  'ECU 1', 'ECU 8', 'ECU 11',
+  // Alemanha
+  'GER 13', 'GER 15', 'GER 20',
+  // Curaçao
+  'CUW 7', 'CUW 8', 'CUW 9', 'CUW 12', 'CUW 13', 'CUW 14', 'CUW 18',
+  // Costa do Marfim
+  'CIV 4', 'CIV 5', 'CIV 14', 'CIV 17',
+  // Equador
+  'ECU 1', 'ECU 5', 'ECU 6', 'ECU 7', 'ECU 9', 'ECU 11',
 
   // === Grupo F ===
-  // Holanda: colunas 1, 15, 16, 17, 20
-  'NED 1', 'NED 15', 'NED 16', 'NED 17', 'NED 20',
-  // Japão: colunas 2, 3, 5, 10, 13
-  'JPN 2', 'JPN 3', 'JPN 5', 'JPN 10', 'JPN 13',
-  // Suécia: colunas 2, 8, 9
-  'SWE 2', 'SWE 8', 'SWE 9',
-  // Tunísia: colunas 2, 12
-  'TUN 2', 'TUN 12',
+  // Holanda
+  'NED 12', 'NED 16',
+  // Japão
+  'JPN 5', 'JPN 7', 'JPN 9', 'JPN 10',
+  // Suécia
+  'SWE 2', 'SWE 6', 'SWE 12',
+  // Tunísia
+  'TUN 12', 'TUN 13',
 
   // === Grupo G ===
-  // Bélgica: colunas 8, 16, 18, 19, 20
-  'BEL 8', 'BEL 16', 'BEL 18', 'BEL 19', 'BEL 20',
-  // Egito: colunas 1, 4, 11, 16, 17
-  'EGY 1', 'EGY 4', 'EGY 11', 'EGY 16', 'EGY 17',
-  // Irã: coluna 8
-  'IRN 8',
-  // Nova Zelândia: colunas 3, 5, 12, 16
-  'NZL 3', 'NZL 5', 'NZL 12', 'NZL 16',
+  // Bélgica
+  'BEL 12', 'BEL 13', 'BEL 18', 'BEL 19',
+  // Egito
+  'EGY 4', 'EGY 11', 'EGY 16', 'EGY 17',
+  // Irã
+  'IRN 7', 'IRN 8', 'IRN 12', 'IRN 13',
+  // Nova Zelândia
+  'NZL 3', 'NZL 6', 'NZL 12', 'NZL 13', 'NZL 19', 'NZL 20',
 
   // === Grupo H ===
-  // Espanha: colunas 1, 16, 17
-  'ESP 1', 'ESP 16', 'ESP 17',
-  // Cabo Verde: colunas 3, 12, 14
-  'CPV 3', 'CPV 12', 'CPV 14',
-  // Arábia Saudita: colunas 1, 2, 6, 18, 19, 20
-  'KSA 1', 'KSA 2', 'KSA 6', 'KSA 18', 'KSA 19', 'KSA 20',
-  // Uruguai: colunas 1, 12, 13, 20
-  'URU 1', 'URU 12', 'URU 13', 'URU 20',
+  // Espanha
+  'ESP 3', 'ESP 16',
+  // Cabo Verde
+  'CPV 3', 'CPV 11', 'CPV 12', 'CPV 17',
+  // Arábia Saudita
+  'KSA 1', 'KSA 4', 'KSA 6', 'KSA 7', 'KSA 10', 'KSA 11', 'KSA 12', 'KSA 13', 'KSA 14', 'KSA 16', 'KSA 18', 'KSA 20',
+  // Uruguai
+  'URU 1', 'URU 11', 'URU 13', 'URU 14', 'URU 15', 'URU 18', 'URU 20',
 
   // === Grupo I ===
-  // França: colunas 1, 2, 8, 11
-  'FRA 1', 'FRA 2', 'FRA 8', 'FRA 11',
-  // Senegal: colunas 3, 4, 5, 8, 11, 13
-  'SEN 3', 'SEN 4', 'SEN 5', 'SEN 8', 'SEN 11', 'SEN 13',
-  // Iraque: colunas 1, 2, 5, 8, 9, 10
-  'IRQ 1', 'IRQ 2', 'IRQ 5', 'IRQ 8', 'IRQ 9', 'IRQ 10',
-  // Noruega: colunas 5, 19, 20
-  'NOR 5', 'NOR 19', 'NOR 20',
+  // França (Nenhuma marcada)
+  // Senegal
+  'SEN 5', 'SEN 15', 'SEN 17', 'SEN 18', 'SEN 19',
+  // Iraque
+  'IRQ 1', 'IRQ 8', 'IRQ 9', 'IRQ 10', 'IRQ 13', 'IRQ 14', 'IRQ 18', 'IRQ 19',
+  // Noruega
+  'NOR 5', 'NOR 11', 'NOR 13',
 
   // === Grupo J ===
-  // Argentina: colunas 16, 20
-  'ARG 16', 'ARG 20',
-  // Argélia: colunas 1, 2, 13, 16, 20
-  'ALG 1', 'ALG 2', 'ALG 13', 'ALG 16', 'ALG 20',
-  // Áustria: colunas 8, 12, 13
-  'AUT 8', 'AUT 12', 'AUT 13',
-  // Jordânia: colunas 1, 2, 3, 18
-  'JOR 1', 'JOR 2', 'JOR 3', 'JOR 18',
+  // Argentina
+  'ARG 13', 'ARG 16', 'ARG 17', 'ARG 20',
+  // Argélia
+  'ALG 1', 'ALG 4', 'ALG 6', 'ALG 11', 'ALG 13', 'ALG 14',
+  // Áustria
+  'AUT 8', 'AUT 12', 'AUT 13', 'AUT 19',
+  // Jordânia
+  'JOR 3', 'JOR 8', 'JOR 9', 'JOR 13', 'JOR 15', 'JOR 18', 'JOR 19',
 
   // === Grupo K ===
-  // Portugal: colunas 8, 10, 18, 19
-  'POR 8', 'POR 10', 'POR 18', 'POR 19',
-  // Congo RD: colunas 2, 3, 15, 18, 19, 20
-  'COD 2', 'COD 3', 'COD 15', 'COD 18', 'COD 19', 'COD 20',
-  // Uzbequistão: colunas 3, 4, 15, 16, 18, 19
-  'UZB 3', 'UZB 4', 'UZB 15', 'UZB 16', 'UZB 18', 'UZB 19',
-  // Colômbia: colunas 2, 3, 15, 16, 17, 18, 20
-  'COL 2', 'COL 3', 'COL 15', 'COL 16', 'COL 17', 'COL 18', 'COL 20',
+  // Portugal
+  'POR 8', 'POR 9', 'POR 12', 'POR 13', 'POR 16', 'POR 19', 'POR 20',
+  // Congo RD
+  'COD 13', 'COD 14', 'COD 17', 'COD 18',
+  // Uzbequistão
+  'UZB 2', 'UZB 5', 'UZB 9', 'UZB 13', 'UZB 15', 'UZB 17', 'UZB 19',
+  // Colômbia
+  'COL 2', 'COL 6', 'COL 19',
 
   // === Grupo L ===
-  // Inglaterra: colunas 7, 8, 11, 17, 18, 20
-  'ENG 7', 'ENG 8', 'ENG 11', 'ENG 17', 'ENG 18', 'ENG 20',
-  // Croácia: colunas 4, 11, 12
-  'CRO 4', 'CRO 11', 'CRO 12',
-  // Gana: colunas 1, 2, 3, 10, 11, 12, 13, 14, 15, 16
-  'GHA 1', 'GHA 2', 'GHA 3', 'GHA 10', 'GHA 11', 'GHA 12',
-  'GHA 13', 'GHA 14', 'GHA 15', 'GHA 16',
-  // Panamá: colunas 10, 11
-  'PAN 10', 'PAN 11',
+  // Inglaterra
+  'ENG 6', 'ENG 7', 'ENG 17', 'ENG 18',
+  // Croácia
+  'CRO 1', 'CRO 3', 'CRO 4', 'CRO 7', 'CRO 8', 'CRO 9', 'CRO 11', 'CRO 12', 'CRO 20',
+  // Gana
+  'GHA 1', 'GHA 2', 'GHA 10', 'GHA 13', 'GHA 14', 'GHA 15', 'GHA 18', 'GHA 20',
+  // Panamá
+  'PAN 3', 'PAN 10', 'PAN 12', 'PAN 19', 'PAN 20',
 ];
+
