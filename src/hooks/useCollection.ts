@@ -9,7 +9,7 @@ interface CollectionState {
 
 const STORAGE_KEY_COLLECTED = 'panini_2026_collected_v3';
 const STORAGE_KEY_REPEATED = 'panini_2026_repeated_v3';
-const STORAGE_KEY_INITIALIZED = 'panini_2026_initialized_v1';
+const STORAGE_KEY_INITIALIZED = 'panini_2026_initialized_v2';
 
 function loadLocal(): CollectionState {
   try {
