@@ -6,6 +6,8 @@ import { getStickerInfo } from '../data/stickers';
 
 const STICKERS_PER_PAGE = 10;
 
+type FilterMode = 'all' | 'missing' | 'repeated';
+
 interface AlbumPagesProps {
   activeSectionId: string;
   currentPage: number;
@@ -14,9 +16,11 @@ interface AlbumPagesProps {
   repeated: Record<string, number>;
   onShowModal: (id: string) => void;
   searchQuery: string;
+  filterMode: FilterMode;
+  onFilterChange: (mode: FilterMode) => void;
 }
 
-export function AlbumPages({ activeSectionId, currentPage, onPageChange, collected, repeated, onShowModal, searchQuery }: AlbumPagesProps) {
+export function AlbumPages({ activeSectionId, currentPage, onPageChange, collected, repeated, onShowModal, searchQuery, filterMode, onFilterChange }: AlbumPagesProps) {
   const section = getSection(activeSectionId);
 
   const stickers = useMemo(() => {
@@ -57,14 +61,22 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
   const displayStickers = filtered || stickers;
   const isFiltering = filtered !== null;
 
-  const totalPages = isFiltering
-    ? Math.ceil(displayStickers.length / STICKERS_PER_PAGE)
-    : Math.ceil(section.count / STICKERS_PER_PAGE);
+  // Apply filterMode on top of search results
+  const filteredByMode = (() => {
+    if (filterMode === 'all') return displayStickers;
+    return displayStickers.filter(s => {
+      if (filterMode === 'missing') return !collected.has(s.id);
+      if (filterMode === 'repeated') return (repeated[s.id] || 0) > 0;
+      return true;
+    });
+  })();
+
+  const totalPages = Math.ceil(filteredByMode.length / STICKERS_PER_PAGE);
 
   const pageStickers = useMemo(() => {
     const start = currentPage * STICKERS_PER_PAGE;
-    return displayStickers.slice(start, start + STICKERS_PER_PAGE);
-  }, [displayStickers, currentPage]);
+    return filteredByMode.slice(start, start + STICKERS_PER_PAGE);
+  }, [filteredByMode, currentPage]);
 
   // When filtering resets, reset page (inside useEffect to avoid side-effects during render)
   useEffect(() => {
@@ -76,6 +88,12 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
   const secCollected = stickers.filter(s => collected.has(s.id)).length;
   const secRepeated = stickers.reduce((acc, s) => acc + (repeated[s.id] || 0), 0);
 
+  const FILTERS: { mode: FilterMode; label: string; activeClass: string }[] = [
+    { mode: 'all',      label: 'Todas',    activeClass: 'bg-panini-navy text-white' },
+    { mode: 'missing',  label: 'Faltando', activeClass: 'bg-red-500 text-white' },
+    { mode: 'repeated', label: 'Repetidas',activeClass: 'bg-panini-gold text-panini-navy' },
+  ];
+
   const getGridCols = () => {
     if (pageStickers.length <= 4) return 'grid-cols-2';
     if (pageStickers.length <= 6) return 'grid-cols-3';
@@ -86,36 +104,54 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Page header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-panini-navy/10 px-4 sm:px-6 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between max-w-5xl mx-auto">
-          <div className="flex items-center gap-3">
-            <span className="text-lg leading-none">{section.flag}</span>
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-panini-navy uppercase tracking-tight leading-tight">
+        <div className="flex items-center justify-between max-w-5xl mx-auto gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-lg leading-none shrink-0">{section.flag}</span>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black text-panini-navy uppercase tracking-tight leading-tight truncate">
                 {isFiltering ? 'Resultados da Busca' : section.name}
               </h2>
               <p className="text-[10px] font-bold text-panini-burgundy uppercase tracking-wider">
                 {isFiltering
-                  ? `${displayStickers.length} figurinhas encontradas`
+                  ? `${filteredByMode.length} figurinhas encontradas`
                   : `${secCollected}/${section.count} coladas · ${secRepeated} repetidas`}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Filter buttons */}
+            <div className="flex bg-panini-navy/5 border border-panini-navy/10 rounded-lg p-0.5 gap-0.5">
+              {FILTERS.map(f => (
+                <button
+                  key={f.mode}
+                  onClick={() => { onFilterChange(f.mode); onPageChange(0); }}
+                  className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide transition-all ${
+                    filterMode === f.mode ? f.activeClass : 'text-panini-navy/50 hover:text-panini-navy hover:bg-panini-navy/5'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Pagination */}
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 0}
               className="p-1.5 rounded-lg bg-panini-navy/5 hover:bg-panini-navy/10 disabled:opacity-20 disabled:hover:bg-panini-navy/5 transition-all border border-panini-navy/10"
+              aria-label="Página anterior"
             >
               <ChevronLeft size={18} className="text-panini-navy" />
             </button>
             <span className="text-xs font-bold text-panini-navy/60 min-w-[4rem] text-center">
-              Pág. {currentPage + 1}/{totalPages}
+              Pág. {currentPage + 1}/{Math.max(1, totalPages)}
             </span>
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= totalPages - 1}
               className="p-1.5 rounded-lg bg-panini-navy/5 hover:bg-panini-navy/10 disabled:opacity-20 disabled:hover:bg-panini-navy/5 transition-all border border-panini-navy/10"
+              aria-label="Próxima página"
             >
               <ChevronRight size={18} className="text-panini-navy" />
             </button>
@@ -156,11 +192,15 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
                   </div>
                 ) : (
                   <div className="py-16 text-center flex flex-col items-center gap-3">
-                    {isFiltering ? (
+                    {isFiltering || filterMode !== 'all' ? (
                       <>
                         <SearchX size={40} className="text-panini-navy/20" />
                         <p className="text-panini-navy/30 font-bold text-lg">Nenhuma figurinha encontrada</p>
-                        <p className="text-panini-navy/20 text-xs font-bold">Tente outro termo de busca</p>
+                        <p className="text-panini-navy/20 text-xs font-bold">
+                          {filterMode === 'missing' ? 'Parabéns! Você tem todas desta seção!' :
+                           filterMode === 'repeated' ? 'Nenhuma repetida nesta seção.' :
+                           'Tente outro termo de busca'}
+                        </p>
                       </>
                     ) : (
                       <p className="text-panini-navy/30 font-bold text-lg">Fim das figurinhas desta seção</p>
@@ -173,10 +213,11 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
               <div className="flex items-center justify-between px-5 py-2 border-t border-panini-navy/5">
                 <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
                   {isFiltering ? 'Busca' : section.id}
+                  {filterMode !== 'all' && !isFiltering && ` · ${filterMode === 'missing' ? 'Faltando' : 'Repetidas'}`}
                 </span>
-                {displayStickers.length > 0 && (
+                {filteredByMode.length > 0 && (
                   <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                    {currentPage * STICKERS_PER_PAGE + 1}-{Math.min((currentPage + 1) * STICKERS_PER_PAGE, displayStickers.length)}
+                    {currentPage * STICKERS_PER_PAGE + 1}-{Math.min((currentPage + 1) * STICKERS_PER_PAGE, filteredByMode.length)}
                   </span>
                 )}
                 <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">

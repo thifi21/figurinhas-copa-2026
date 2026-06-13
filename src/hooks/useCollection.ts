@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase, getDeviceId } from '../lib/supabase';
+import { supabase, getDeviceId, startKeepAlive } from '../lib/supabase';
 import { INITIAL_COLLECTED } from '../data/initialCollection';
 
 interface CollectionState {
@@ -51,10 +51,18 @@ function loadInitial(): CollectionState {
 export function useCollection() {
   const [state, setState] = useState<CollectionState>(loadInitial);
   const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const pendingStateRef = useRef<CollectionState | null>(null);
   const syncInFlight = useRef(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const deviceId = getDeviceId();
+
+  // Keep-alive: impede que o projeto Supabase free-tier pause por inatividade
+  useEffect(() => {
+    const cancel = startKeepAlive();
+    return cancel;
+  }, []);
 
   // Sync from Supabase on mount — server wins only if there's no local data
   useEffect(() => {
@@ -121,6 +129,7 @@ export function useCollection() {
 
     syncInFlight.current = true;
     setSyncing(true);
+    setSyncError(false);
 
     try {
       let currentState = newState;
@@ -160,9 +169,11 @@ export function useCollection() {
       }
 
       setLastSync(new Date());
+      setSyncError(false);
       pendingStateRef.current = null;
     } catch {
-      // Silently fail — data is saved locally
+      // Falha no sync — dados já salvos localmente, notifica UI
+      setSyncError(true);
     } finally {
       syncInFlight.current = false;
       setSyncing(false);
@@ -175,6 +186,14 @@ export function useCollection() {
       }
     }
   }, [deviceId]);
+
+  // ── Debounced sync — evita múltiplas chamadas ao Supabase em clicks rápidos ─
+  const debouncedSync = useCallback((newState: CollectionState) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      syncToServer(newState);
+    }, 1500);
+  }, [syncToServer]);
 
   // ── Keep pendingStateRef current for beforeunload ───────────────────────────
   useEffect(() => {
@@ -242,15 +261,15 @@ export function useCollection() {
   }, [deviceId]);
 
   // ── Mutation helpers ────────────────────────────────────────────────────────
-  // Computes next state synchronously, persists locally, and syncs to server immediately.
+  // Computes next state synchronously, persists locally, and debounces server sync.
   const applyMutation = useCallback((updater: (prev: CollectionState) => CollectionState) => {
     setState(prev => {
       const next = updater(prev);
       saveLocal(next);
-      syncToServer(next);
+      debouncedSync(next);
       return next;
     });
-  }, [syncToServer]);
+  }, [debouncedSync]);
 
   const toggleCollected = useCallback((id: string) => {
     applyMutation(prev => {
@@ -295,6 +314,7 @@ export function useCollection() {
     addRepeated,
     removeRepeated,
     syncing,
+    syncError,
     lastSync,
     totalCollected: state.collected.size
   };

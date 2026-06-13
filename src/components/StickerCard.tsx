@@ -25,10 +25,15 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
   const info = getStickerInfo(stickerId);
   const type = getStickerType(number);
 
+  const displayName = info?.name || `Figurinha ${section.id} ${number}`;
+  const ariaLabel = `${displayName} — ${isCollected ? 'Colada' : 'Faltando'}${repeatedCount > 0 ? `, ${repeatedCount} repetida(s)` : ''}`;
+
   return (
     <button
       onClick={() => onShowModal(stickerId)}
       className="group relative w-full perspective-1000"
+      aria-label={ariaLabel}
+      title={ariaLabel}
     >
       <div className={`
         relative aspect-[3/4] w-full rounded-sm overflow-hidden
@@ -46,6 +51,7 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
     </button>
   );
 }
+
 
 function StickerCollected({ section, number, info, type, repeatedCount, stickerId }: {
   section: Section; number: number; info?: { name: string; position?: string }; type: string; repeatedCount: number; stickerId: string
