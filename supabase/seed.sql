@@ -48,9 +48,9 @@ INSERT INTO sections (id, name, count, confederation, flag_colors, flag_emoji) V
 ('UZB', 'Uzbequistão', 20, 'AFC', '["#0099B5","#FFFFFF","#1EB53A"]'::jsonb, '🇺🇿'),
 ('COL', 'Colômbia', 20, 'CONMEBOL', '["#FCD116","#003893","#CE1126"]'::jsonb, '🇨🇴'),
 ('ENG', 'Inglaterra', 20, 'UEFA', '["#FFFFFF","#CF142B","#1D1D1D"]'::jsonb, '🏴󠁧󠁢󠁥󠁮󠁧󠁿'),
-('GHA', 'Gana', 20, 'CAF', '["#CE1126","#FFD700","#006B3F"]'::jsonb, '🇬🇭'),
+('PAN', 'Panamá', 20, 'CONCACAF', '["#005293","#FFFFFF","#D21034"]'::jsonb, '🇵🇦'),
 ('CRO', 'Croácia', 20, 'UEFA', '["#FF0000","#FFFFFF","#171796"]'::jsonb, '🇭🇷'),
-('PAN', 'Panamá', 20, 'CONCACAF', '["#005293","#FFFFFF","#D21034"]'::jsonb, '🇵🇦')
+('GHA', 'Gana', 20, 'CAF', '["#CE1126","#FFD700","#006B3F"]'::jsonb, '🇬🇭')
 ON CONFLICT (id) DO UPDATE SET count = EXCLUDED.count;
 
 -- Generate all stickers

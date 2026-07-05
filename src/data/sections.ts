@@ -56,9 +56,9 @@ export const SECTIONS: Section[] = [
   { id: 'UZB', name: 'Uzbequistão', count: 20, confederation: 'AFC', colors: ["#0099B5","#FFFFFF","#1EB53A"], flag: '🇺🇿', group: 'K', page: 92 },
   { id: 'COL', name: 'Colômbia', count: 20, confederation: 'CONMEBOL', colors: ["#FCD116","#003893","#CE1126"], flag: '🇨🇴', group: 'K', page: 94 },
   { id: 'ENG', name: 'Inglaterra', count: 20, confederation: 'UEFA', colors: ["#FFFFFF","#CF142B","#1D1D1D"], flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', group: 'L', page: 96 },
-  { id: 'GHA', name: 'Gana', count: 20, confederation: 'CAF', colors: ["#CE1126","#FFD700","#006B3F"], flag: '🇬🇭', group: 'L', page: 98 },
+  { id: 'PAN', name: 'Panamá', count: 20, confederation: 'CONCACAF', colors: ["#005293","#FFFFFF","#D21034"], flag: '🇵🇦', group: 'L', page: 98 },
   { id: 'CRO', name: 'Croácia', count: 20, confederation: 'UEFA', colors: ["#FF0000","#FFFFFF","#171796"], flag: '🇭🇷', group: 'L', page: 100 },
-  { id: 'PAN', name: 'Panamá', count: 20, confederation: 'CONCACAF', colors: ["#005293","#FFFFFF","#D21034"], flag: '🇵🇦', group: 'L', page: 102 }
+  { id: 'GHA', name: 'Gana', count: 20, confederation: 'CAF', colors: ["#CE1126","#FFD700","#006B3F"], flag: '🇬🇭', group: 'L', page: 102 }
 ];
 
 export const TOTAL_STICKERS = SECTIONS.reduce((acc, s) => acc + s.count, 0);
