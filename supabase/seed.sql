@@ -2,7 +2,7 @@
 
 -- Insert all sections
 INSERT INTO sections (id, name, count, confederation, flag_colors, flag_emoji) VALUES
-('FWC', 'Especiais FIFA', 11, 'FIFA', '["#1A3668","#D4AF37","#0d1b2a"]'::jsonb, '🏆'),
+('FWC', 'Especiais FIFA', 17, 'FIFA', '["#1A3668","#D4AF37","#0d1b2a"]'::jsonb, '🏆'),
 ('MEX', 'México', 20, 'CONCACAF', '["#006847","#FFFFFF","#CE1126"]'::jsonb, '🇲🇽'),
 ('RSA', 'África do Sul', 20, 'CAF', '["#DE3831","#FFFFFF","#002B7F"]'::jsonb, '🇿🇦'),
 ('KOR', 'Coreia do Sul', 20, 'AFC', '["#FFFFFF","#003478","#E60000"]'::jsonb, '🇰🇷'),
@@ -50,7 +50,8 @@ INSERT INTO sections (id, name, count, confederation, flag_colors, flag_emoji) V
 ('ENG', 'Inglaterra', 20, 'UEFA', '["#FFFFFF","#CF142B","#1D1D1D"]'::jsonb, '🏴󠁧󠁢󠁥󠁮󠁧󠁿'),
 ('PAN', 'Panamá', 20, 'CONCACAF', '["#005293","#FFFFFF","#D21034"]'::jsonb, '🇵🇦'),
 ('CRO', 'Croácia', 20, 'UEFA', '["#FF0000","#FFFFFF","#171796"]'::jsonb, '🇭🇷'),
-('GHA', 'Gana', 20, 'CAF', '["#CE1126","#FFD700","#006B3F"]'::jsonb, '🇬🇭')
+('GHA', 'Gana', 20, 'CAF', '["#CE1126","#FFD700","#006B3F"]'::jsonb, '🇬🇭'),
+('CC', 'Coca-Cola', 14, 'FIFA', '["#F40009","#FFFFFF","#000000"]'::jsonb, '🥤')
 ON CONFLICT (id) DO UPDATE SET count = EXCLUDED.count;
 
 -- Generate all stickers

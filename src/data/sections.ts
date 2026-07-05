@@ -10,7 +10,7 @@ export interface Section {
 }
 
 export const SECTIONS: Section[] = [
-  { id: 'FWC', name: 'Especiais FIFA', count: 11, confederation: 'FIFA', colors: ["#1A3668","#D4AF37","#0d1b2a"], flag: '🏆', group: 'FWC', page: 1 },
+  { id: 'FWC', name: 'Especiais FIFA', count: 17, confederation: 'FIFA', colors: ["#1A3668","#D4AF37","#0d1b2a"], flag: '🏆', group: 'FWC', page: 106 },
   { id: 'MEX', name: 'México', count: 20, confederation: 'CONCACAF', colors: ["#006847","#FFFFFF","#CE1126"], flag: '🇲🇽', group: 'A', page: 8 },
   { id: 'RSA', name: 'África do Sul', count: 20, confederation: 'CAF', colors: ["#DE3831","#FFFFFF","#002B7F"], flag: '🇿🇦', group: 'A', page: 10 },
   { id: 'KOR', name: 'Coreia do Sul', count: 20, confederation: 'AFC', colors: ["#FFFFFF","#003478","#E60000"], flag: '🇰🇷', group: 'A', page: 12 },
@@ -58,7 +58,8 @@ export const SECTIONS: Section[] = [
   { id: 'ENG', name: 'Inglaterra', count: 20, confederation: 'UEFA', colors: ["#FFFFFF","#CF142B","#1D1D1D"], flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', group: 'L', page: 96 },
   { id: 'PAN', name: 'Panamá', count: 20, confederation: 'CONCACAF', colors: ["#005293","#FFFFFF","#D21034"], flag: '🇵🇦', group: 'L', page: 98 },
   { id: 'CRO', name: 'Croácia', count: 20, confederation: 'UEFA', colors: ["#FF0000","#FFFFFF","#171796"], flag: '🇭🇷', group: 'L', page: 100 },
-  { id: 'GHA', name: 'Gana', count: 20, confederation: 'CAF', colors: ["#CE1126","#FFD700","#006B3F"], flag: '🇬🇭', group: 'L', page: 102 }
+  { id: 'GHA', name: 'Gana', count: 20, confederation: 'CAF', colors: ["#CE1126","#FFD700","#006B3F"], flag: '🇬🇭', group: 'L', page: 102 },
+  { id: 'CC', name: 'Coca-Cola', count: 14, confederation: 'FIFA', colors: ["#F40009","#FFFFFF","#000000"], flag: '🥤', group: 'CC' }
 ];
 
 export const TOTAL_STICKERS = SECTIONS.reduce((acc, s) => acc + s.count, 0);
