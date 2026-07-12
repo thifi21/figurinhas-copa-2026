@@ -57,13 +57,13 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-panini-navy via-[#0f1f35] to-panini-navy font-sans overflow-hidden">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-panini-navy via-[#1A3668] to-[#5c162e] text-white shadow-album z-20 flex-shrink-0 border-b border-panini-gold/20">
-        <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3">
+    <div className="h-screen flex flex-col bg-transparent font-sans overflow-hidden">
+      {/* Sleek Floating Header */}
+      <header className="z-30 flex-shrink-0 p-2 sm:p-4 pointer-events-none">
+        <div className="max-w-5xl mx-auto flex items-center justify-between glass-panel px-3 sm:px-5 py-2 pointer-events-auto">
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              className="md:hidden p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
+              className="p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10 text-white"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu de seções"
             >
@@ -76,12 +76,10 @@ export default function App() {
                 <span className="text-panini-navy font-black text-sm sm:text-base">26</span>
               </div>
               <div>
-                <h1 className="text-sm sm:text-lg font-black tracking-tight leading-tight">
-                  <span className="bg-gradient-to-r from-panini-gold via-yellow-300 to-panini-gold bg-clip-text text-transparent">
-                    COPA 2026
-                  </span>
+                <h1 className="text-sm sm:text-lg font-black tracking-tight leading-tight text-white">
+                  COPA 2026
                 </h1>
-                <p className="text-[8px] sm:text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] leading-tight">
+                <p className="text-[8px] sm:text-[10px] font-bold text-white/70 uppercase tracking-[0.2em] leading-tight">
                   Álbum de Figurinhas
                 </p>
               </div>
@@ -177,15 +175,25 @@ export default function App() {
         </div>
       )}
 
-      {/* Main layout */}
-      <div className="flex-1 flex overflow-hidden relative">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          activeSectionId={activeSectionId}
-          onSectionChange={handleSectionChange}
-          collected={collected}
-        />
+      {/* Main layout (Desk area) */}
+      <div className="flex-1 flex overflow-hidden relative items-center justify-center p-2 sm:p-4 lg:p-8">
+        {/* Sidebar is now absolute overlay to preserve book illusion */}
+        <div className={`absolute inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <Sidebar
+            isOpen={true} // Force open visually, controlled by translate-x
+            onClose={() => setSidebarOpen(false)}
+            activeSectionId={activeSectionId}
+            onSectionChange={handleSectionChange}
+            collected={collected}
+          />
+        </div>
+        {/* Backdrop for sidebar */}
+        {sidebarOpen && (
+          <div 
+            className="absolute inset-0 bg-black/50 z-30 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
         <AlbumPages
           activeSectionId={activeSectionId}

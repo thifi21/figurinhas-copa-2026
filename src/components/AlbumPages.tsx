@@ -4,7 +4,7 @@ import { StickerCard } from './StickerCard';
 import { getSection, SECTIONS } from '../data/sections';
 import { getStickerInfo } from '../data/stickers';
 
-const STICKERS_PER_PAGE = 10;
+const STICKERS_PER_PAGE = 20; // 20 per spread (10 per page)
 
 type FilterMode = 'all' | 'missing' | 'repeated';
 
@@ -94,11 +94,7 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     { mode: 'repeated', label: 'Repetidas',activeClass: 'bg-panini-gold text-panini-navy' },
   ];
 
-  const getGridCols = () => {
-    if (pageStickers.length <= 4) return 'grid-cols-2';
-    if (pageStickers.length <= 6) return 'grid-cols-3';
-    return 'grid-cols-5';
-  };
+
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -159,26 +155,30 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
         </div>
       </div>
 
-      {/* Album page spread */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="min-h-full flex items-start justify-center p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-5xl">
-            {/* Single page */}
-            <div className="bg-white rounded-lg shadow-album-page overflow-hidden paper-texture-sm border border-panini-navy/5">
-              {/* Page number header */}
-              <div className="flex items-center justify-between px-5 py-2 border-b border-panini-navy/5">
-                <div className="w-8 h-0.5 bg-panini-gold/30 rounded-full" />
-                <span className="text-[10px] font-bold text-panini-navy/30 uppercase tracking-[0.2em]">
-                  {isFiltering ? 'Busca' : `${section.name} · ${section.confederation}`}
-                </span>
-                <div className="w-8 h-0.5 bg-panini-gold/30 rounded-full" />
+      {/* Album Book Spread */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar flex items-start justify-center p-4 sm:p-8 perspective-1000">
+        <div className="w-full max-w-6xl relative album-cover-shadow bg-panini-slot rounded-md">
+          {/* Book Spread Container */}
+          <div className="flex flex-col md:flex-row relative z-10 w-full min-h-[80vh] md:min-h-[600px]">
+            
+            {/* LEFT PAGE */}
+            <div className="w-full md:w-1/2 bg-white paper-texture-sm album-page-left flex flex-col relative z-10">
+              {/* Panini Style Header (only on first page of section, or just repeat it) */}
+              <div className="h-16 flex items-stretch">
+                <div className="w-4 bg-panini-navy" style={{ backgroundColor: section.colors[0] }}></div>
+                <div className="flex-1 bg-gradient-to-r from-panini-navy to-panini-blue flex items-center px-4 justify-between" style={{ background: `linear-gradient(to right, ${section.colors[0]}, ${section.colors[1] || '#1A3668'})` }}>
+                  <span className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-md">
+                    {isFiltering ? 'Busca' : section.name}
+                  </span>
+                  <span className="text-4xl drop-shadow-lg">{section.flag}</span>
+                </div>
               </div>
-
-              {/* Stickers grid */}
-              <div className="p-4 sm:p-6">
-                {pageStickers.length > 0 ? (
-                  <div className={`grid ${getGridCols()} gap-3 sm:gap-4`}>
-                    {pageStickers.map(s => (
+              
+              {/* Stickers grid left */}
+              <div className="p-4 sm:p-6 flex-1 flex flex-col">
+                {pageStickers.slice(0, 10).length > 0 ? (
+                  <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4`}>
+                    {pageStickers.slice(0, 10).map(s => (
                       <StickerCard
                         key={s.id}
                         stickerId={s.id}
@@ -191,40 +191,77 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
                     ))}
                   </div>
                 ) : (
-                  <div className="py-16 text-center flex flex-col items-center gap-3">
-                    {isFiltering || filterMode !== 'all' ? (
-                      <>
-                        <SearchX size={40} className="text-panini-navy/20" />
-                        <p className="text-panini-navy/30 font-bold text-lg">Nenhuma figurinha encontrada</p>
-                        <p className="text-panini-navy/20 text-xs font-bold">
-                          {filterMode === 'missing' ? 'Parabéns! Você tem todas desta seção!' :
-                           filterMode === 'repeated' ? 'Nenhuma repetida nesta seção.' :
-                           'Tente outro termo de busca'}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-panini-navy/30 font-bold text-lg">Fim das figurinhas desta seção</p>
-                    )}
+                  <div className="py-10 text-center flex flex-col items-center gap-3">
+                    {/* Empty search state handled below if both are empty */}
                   </div>
                 )}
               </div>
 
               {/* Page footer */}
-              <div className="flex items-center justify-between px-5 py-2 border-t border-panini-navy/5">
-                <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                  {isFiltering ? 'Busca' : section.id}
-                  {filterMode !== 'all' && !isFiltering && ` · ${filterMode === 'missing' ? 'Faltando' : 'Repetidas'}`}
-                </span>
-                {filteredByMode.length > 0 && (
-                  <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                    {currentPage * STICKERS_PER_PAGE + 1}-{Math.min((currentPage + 1) * STICKERS_PER_PAGE, filteredByMode.length)}
-                  </span>
-                )}
-                <span className="text-[9px] font-bold text-panini-navy/20 uppercase tracking-wider">
-                  Fig. Copa 2026
-                </span>
+              <div className="flex items-center justify-between px-5 py-3 border-t border-black/5 mt-auto">
+                 <span className="text-[10px] font-bold text-black/30 uppercase tracking-widest">{section.id}</span>
+                 <span className="text-[10px] font-bold text-black/30">{currentPage * 2 + 1}</span>
               </div>
             </div>
+
+            {/* Book Spine Overlay (Desktop only) */}
+            <div className="hidden md:block absolute inset-y-0 left-1/2 -ml-4 w-8 album-spine-overlay z-20 pointer-events-none"></div>
+
+            {/* RIGHT PAGE */}
+            <div className="w-full md:w-1/2 bg-white paper-texture-sm album-page-right flex flex-col relative z-10 border-t border-dashed border-black/10 md:border-t-0 md:border-l md:border-solid md:border-black/5">
+              {/* Optional header for right page, or just keep it simple */}
+              <div className="h-16 flex items-stretch">
+                <div className="flex-1 bg-gradient-to-r from-panini-blue to-white/10 flex items-center px-4 justify-end" style={{ background: `linear-gradient(to right, ${section.colors[1] || '#1A3668'}, rgba(255,255,255,0.1))` }}>
+                   <span className="text-xl font-black text-black/10 uppercase tracking-tighter">
+                     {section.confederation}
+                   </span>
+                </div>
+              </div>
+
+              {/* Stickers grid right */}
+              <div className="p-4 sm:p-6 flex-1 flex flex-col">
+                {pageStickers.slice(10, 20).length > 0 ? (
+                  <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4`}>
+                    {pageStickers.slice(10, 20).map(s => (
+                      <StickerCard
+                        key={s.id}
+                        stickerId={s.id}
+                        sectionId={'sectionId' in s ? (s as any).sectionId : section.id}
+                        number={s.number}
+                        isCollected={collected.has(s.id)}
+                        repeatedCount={repeated[s.id] || 0}
+                        onShowModal={onShowModal}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  pageStickers.length === 0 && (
+                    <div className="py-16 text-center flex flex-col items-center gap-3 w-full absolute inset-0 justify-center">
+                      {isFiltering || filterMode !== 'all' ? (
+                        <>
+                          <SearchX size={40} className="text-panini-navy/20" />
+                          <p className="text-panini-navy/30 font-bold text-lg">Nenhuma figurinha encontrada</p>
+                          <p className="text-panini-navy/20 text-xs font-bold">
+                            {filterMode === 'missing' ? 'Parabéns! Você tem todas!' :
+                             filterMode === 'repeated' ? 'Nenhuma repetida aqui.' :
+                             'Tente outro termo'}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-panini-navy/30 font-bold text-lg">Fim da seção</p>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+
+              {/* Page footer */}
+              <div className="flex items-center justify-between px-5 py-3 border-t border-black/5 mt-auto">
+                 <span className="text-[10px] font-bold text-black/30">Copa 2026</span>
+                 <span className="text-[10px] font-bold text-black/30">{currentPage * 2 + 2}</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

@@ -35,13 +35,18 @@ export function StickerCard({ stickerId, sectionId, number, isCollected, repeate
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <div className={`
-        relative aspect-[3/4] w-full rounded-sm overflow-hidden
-        transition-all duration-300 ease-out
-        ${isCollected
-          ? 'bg-white border-[3px] border-white shadow-sticker hover:shadow-xl hover:scale-[1.08] hover:-rotate-1 z-10'
-          : 'bg-panini-slot border-2 border-dashed border-panini-navy/20 hover:border-panini-navy/40 hover:bg-panini-navy/5'}
-      `}>
+      <div 
+        className={`
+          relative aspect-[3/4] w-full rounded-sm overflow-hidden
+          transition-all duration-300 ease-out
+          ${isCollected
+            ? 'bg-white border-2 border-white/90 shadow-[0_2px_5px_rgba(0,0,0,0.3)] hover:shadow-xl hover:scale-[1.08] hover:rotate-0 z-10'
+            : 'bg-transparent border border-black/30 hover:border-black/50 hover:bg-black/5'}
+        `}
+        style={isCollected ? { 
+          transform: `rotate(${((number % 5) - 2) * 0.8}deg) translate(${((number % 3) - 1)}px, ${((number % 4) - 1.5)}px)`
+        } : {}}
+      >
         {isCollected ? (
           <StickerCollected section={section} number={number} info={info} type={type} repeatedCount={repeatedCount} stickerId={stickerId} />
         ) : (
@@ -151,14 +156,28 @@ function StickerCollected({ section, number, info, type, repeatedCount, stickerI
 
 function StickerEmpty({ section, number }: { section: Section; number: number }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-      <span className="text-[10px] font-bold opacity-30 uppercase tracking-widest text-panini-navy">
-        {section.id}
-      </span>
-      <span className="text-lg sm:text-xl font-black opacity-20 text-panini-navy">
+    <div className="absolute inset-0 flex flex-col items-center justify-center p-1 bg-white/50 shadow-[inset_0_0_15px_rgba(0,0,0,0.03)]">
+      {/* Inner guide border */}
+      <div className="absolute inset-[3px] border border-black/10"></div>
+      
+      {/* Section ID Top Left */}
+      <div className="absolute top-1.5 left-1.5 px-0.5 border border-black/20 bg-white/30">
+        <span className="text-[7px] font-bold text-black/40 uppercase block leading-none">{section.id}</span>
+      </div>
+
+      {/* Big Number */}
+      <span className="text-3xl sm:text-4xl font-black text-black/10 tracking-tighter">
         {number}
       </span>
-      <span className="text-[16px] opacity-20 mt-1">{section.flag}</span>
+      
+      {/* Small text indicator at bottom */}
+      <div className="absolute bottom-1.5 w-full text-center">
+        <div className="mx-2 border-t border-black/10 pt-0.5">
+          <span className="text-[6px] font-bold text-black/30 uppercase tracking-widest block truncate">
+            {section.name}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
