@@ -1,4 +1,5 @@
-import { X, Minus, Plus, Trophy, Layers, Shield, Camera } from 'lucide-react';
+import { useState } from 'react';
+import { X, Minus, Plus, Trophy, Layers, Shield, Camera, Check } from 'lucide-react';
 import { getSection } from '../data/sections';
 import { getStickerInfo, getStickerType } from '../data/stickers';
 import { getStickerImageUrl } from '../data/stickerImage';
@@ -29,15 +30,44 @@ export function StickerModal({ stickerId, isCollected, repeatedCount, onClose, o
   const displayName = info?.name
     || (isEmblem ? `Escudo ${section.name}` : isPhoto ? `Foto da Equipe - ${section.name}` : `Figurinha ${number}`);
 
+  // Feedback visual após colar
+  const [justCollected, setJustCollected] = useState(false);
+
+  const handleToggle = () => {
+    // Háptico no mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(isCollected ? 30 : 60);
+    }
+
+    onToggleCollected(stickerId);
+
+    // Mostrar feedback visual de confirmação apenas ao COLAR (false → true)
+    if (!isCollected) {
+      setJustCollected(true);
+      setTimeout(() => setJustCollected(false), 800);
+    }
+  };
+
+  const handleAddRepeated = () => {
+    if ('vibrate' in navigator) navigator.vibrate(30);
+    onAddRepeated(stickerId);
+  };
+
+  const handleRemoveRepeated = () => {
+    if ('vibrate' in navigator) navigator.vibrate(20);
+    onRemoveRepeated(stickerId);
+  };
+
   return (
     <div
-      className="fixed inset-0 bg-panini-navy/80 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-panini-navy/85 backdrop-blur-md flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <div
         className="bg-white w-full max-w-sm rounded-2xl shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
+        {/* Color stripe top */}
         <div
           className="h-2 w-full"
           style={{ background: `linear-gradient(90deg, ${colors[0]}, ${colors[1] || colors[0]}, ${colors[2] || colors[0]})` }}
@@ -143,10 +173,11 @@ export function StickerModal({ stickerId, isCollected, repeatedCount, onClose, o
           </div>
 
           <div className="space-y-3">
+            {/* Toggle collected button */}
             <button
-              onClick={() => onToggleCollected(stickerId)}
+              onClick={handleToggle}
               className={`
-                w-full py-3.5 rounded-xl font-black text-base transition-all flex items-center justify-center gap-2 uppercase tracking-wide
+                w-full py-3.5 rounded-xl font-black text-base transition-all flex items-center justify-center gap-2 uppercase tracking-wide relative overflow-hidden
                 ${isCollected
                   ? 'bg-white text-panini-burgundy hover:bg-red-50 border-2 border-panini-burgundy/20 shadow-sm'
                   : 'text-white hover:brightness-110 border-none shadow-[0_4px_15px_rgba(212,175,55,0.4)]'}
@@ -155,10 +186,17 @@ export function StickerModal({ stickerId, isCollected, repeatedCount, onClose, o
                 background: `linear-gradient(135deg, ${colors[0]}, ${colors[1] || colors[0]})`
               } : {}}
             >
+              {/* Confirm flash overlay */}
+              {justCollected && (
+                <span className="absolute inset-0 flex items-center justify-center bg-green-500 rounded-xl animate-confirm-pop z-10">
+                  <Check size={28} className="text-white" strokeWidth={3} />
+                </span>
+              )}
               <Trophy size={18} />
               {isCollected ? 'Remover do Álbum' : 'Colar Figurinha'}
             </button>
 
+            {/* Repeated counter */}
             <div className="bg-panini-paper rounded-xl flex items-center justify-between p-3 border-2 border-panini-navy/5">
               <span className="font-bold text-panini-navy flex items-center gap-2 uppercase text-xs tracking-wider">
                 <Layers size={16} className="text-panini-gold" />
@@ -166,17 +204,17 @@ export function StickerModal({ stickerId, isCollected, repeatedCount, onClose, o
               </span>
               <div className="flex items-center gap-1 bg-white px-2 py-1.5 rounded-lg border border-panini-navy/10 shadow-inner">
                 <button
-                  onClick={() => onRemoveRepeated(stickerId)}
+                  onClick={handleRemoveRepeated}
                   disabled={repeatedCount === 0}
                   className="p-1.5 rounded-md text-panini-burgundy hover:bg-panini-paper disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                 >
                   <Minus size={16} />
                 </button>
-                <span className="font-black text-lg w-8 text-center text-panini-navy">
+                <span className="font-black text-lg w-8 text-center text-panini-navy tabular-nums">
                   {repeatedCount}
                 </span>
                 <button
-                  onClick={() => onAddRepeated(stickerId)}
+                  onClick={handleAddRepeated}
                   className="p-1.5 rounded-md text-panini-blue hover:bg-panini-paper transition-all"
                 >
                   <Plus size={16} />

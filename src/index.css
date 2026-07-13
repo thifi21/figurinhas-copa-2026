@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,19 +10,20 @@
   }
 
   body {
-    @apply bg-slate-900 text-slate-900 antialiased overflow-hidden;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    /* Desk surface background */
-    background-color: #1a1e24;
-    background-image: 
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.5) 100%),
-      url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+    @apply antialiased overflow-hidden;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    /* Mesa de colecionador — verde escuro texturizado */
+    background-color: #0f1c14;
+    background-image:
+      radial-gradient(ellipse at 30% 20%, rgba(20, 60, 30, 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(10, 30, 50, 0.5) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
   }
 }
 
 /* ===== Glass Panel ===== */
 .glass-panel {
-  @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-album rounded-2xl;
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-album rounded-2xl;
 }
 
 /* ===== Gradients ===== */
@@ -68,44 +71,48 @@
   transform: rotate(30deg) translate(50%, 50%);
 }
 
-/* ===== Paper Texture ===== */
+/* ===== Paper Texture — Estilo Panini 2026 ===== */
 .paper-texture {
-  background-color: #f4f1ea;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+  background-color: #faf6ef;
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.07'/%3E%3C/svg%3E");
 }
 
 .paper-texture-sm {
-  background-color: #ffffff;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-color: #fefcf8;
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 /* ===== Album Book Styles ===== */
 .album-cover-shadow {
-  box-shadow: 
-    -20px 0 30px -10px rgba(0,0,0,0.7),
-    20px 0 30px -10px rgba(0,0,0,0.7),
-    0 25px 40px -10px rgba(0,0,0,0.6);
+  box-shadow:
+    -30px 0 50px -15px rgba(0,0,0,0.8),
+    30px 0 50px -15px rgba(0,0,0,0.8),
+    0 35px 60px -15px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(0,0,0,0.3);
 }
 
 .album-page-left {
-  box-shadow: inset -10px 0 20px -10px rgba(0,0,0,0.2), 
-              inset 0 0 0 1px rgba(0,0,0,0.05);
-  border-radius: 4px 0 0 4px;
+  box-shadow:
+    inset -15px 0 30px -12px rgba(0,0,0,0.25),
+    inset 0 0 0 1px rgba(0,0,0,0.04);
+  border-radius: 6px 0 0 6px;
 }
 
 .album-page-right {
-  box-shadow: inset 10px 0 20px -10px rgba(0,0,0,0.2),
-              inset 0 0 0 1px rgba(0,0,0,0.05);
-  border-radius: 0 4px 4px 0;
+  box-shadow:
+    inset 15px 0 30px -12px rgba(0,0,0,0.25),
+    inset 0 0 0 1px rgba(0,0,0,0.04);
+  border-radius: 0 6px 6px 0;
 }
 
 .album-spine-overlay {
-  background: linear-gradient(to right, 
-    rgba(0,0,0,0.05) 0%, 
-    rgba(0,0,0,0.2) 20%, 
-    rgba(0,0,0,0.25) 50%, 
-    rgba(0,0,0,0.2) 80%, 
-    rgba(0,0,0,0.05) 100%
+  background: linear-gradient(to right,
+    rgba(0,0,0,0.0) 0%,
+    rgba(0,0,0,0.15) 25%,
+    rgba(0,0,0,0.35) 48%,
+    rgba(0,0,0,0.35) 52%,
+    rgba(0,0,0,0.15) 75%,
+    rgba(0,0,0,0.0) 100%
   );
 }
 
@@ -142,23 +149,88 @@
   border-radius: 4px;
 }
 
-/* ===== Animations ===== */
+/* ===== PAGE FLIP ANIMATION ===== */
+.album-spread-wrapper {
+  perspective: 2500px;
+  perspective-origin: 50% 40%;
+}
+
+/* Container do spread que recebe a animação */
+.album-spread {
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  transition: none;
+  will-change: transform, opacity;
+}
+
+/* Virar para frente (próxima página) */
+@keyframes page-flip-out-forward {
+  0%   { transform: rotateY(0deg) scale(1); opacity: 1; filter: brightness(1); }
+  40%  { transform: rotateY(-12deg) scale(0.97) translateX(-1%); opacity: 0.9; filter: brightness(0.85); }
+  80%  { transform: rotateY(-20deg) scale(0.95) translateX(-2%); opacity: 0.7; filter: brightness(0.7); }
+  100% { transform: rotateY(-25deg) scale(0.94) translateX(-2.5%); opacity: 0; filter: brightness(0.5); }
+}
+
+@keyframes page-flip-in-forward {
+  0%   { transform: rotateY(25deg) scale(0.94) translateX(2.5%); opacity: 0; filter: brightness(0.5); }
+  20%  { transform: rotateY(20deg) scale(0.95) translateX(2%); opacity: 0.4; filter: brightness(0.7); }
+  60%  { transform: rotateY(10deg) scale(0.97) translateX(0.8%); opacity: 0.85; filter: brightness(0.9); }
+  100% { transform: rotateY(0deg) scale(1) translateX(0); opacity: 1; filter: brightness(1); }
+}
+
+/* Virar para trás (página anterior) */
+@keyframes page-flip-out-backward {
+  0%   { transform: rotateY(0deg) scale(1); opacity: 1; filter: brightness(1); }
+  40%  { transform: rotateY(12deg) scale(0.97) translateX(1%); opacity: 0.9; filter: brightness(0.85); }
+  80%  { transform: rotateY(20deg) scale(0.95) translateX(2%); opacity: 0.7; filter: brightness(0.7); }
+  100% { transform: rotateY(25deg) scale(0.94) translateX(2.5%); opacity: 0; filter: brightness(0.5); }
+}
+
+@keyframes page-flip-in-backward {
+  0%   { transform: rotateY(-25deg) scale(0.94) translateX(-2.5%); opacity: 0; filter: brightness(0.5); }
+  20%  { transform: rotateY(-20deg) scale(0.95) translateX(-2%); opacity: 0.4; filter: brightness(0.7); }
+  60%  { transform: rotateY(-10deg) scale(0.97) translateX(-0.8%); opacity: 0.85; filter: brightness(0.9); }
+  100% { transform: rotateY(0deg) scale(1) translateX(0); opacity: 1; filter: brightness(1); }
+}
+
+.flip-out-forward {
+  animation: page-flip-out-forward 0.28s cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+
+.flip-in-forward {
+  animation: page-flip-in-forward 0.32s cubic-bezier(0.2, 0.4, 0.4, 1) forwards;
+}
+
+.flip-out-backward {
+  animation: page-flip-out-backward 0.28s cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+
+.flip-in-backward {
+  animation: page-flip-in-backward 0.32s cubic-bezier(0.2, 0.4, 0.4, 1) forwards;
+}
+
+/* ===== STICKER COLLECT ANIMATION ===== */
 @keyframes sticker-place {
-  0% {
-    transform: scale(0.8) rotate(-5deg);
-    opacity: 0.5;
-  }
-  50% {
-    transform: scale(1.1) rotate(2deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
+  0%   { transform: scale(0.75) rotate(-8deg); opacity: 0.4; filter: brightness(1.6); }
+  40%  { transform: scale(1.18) rotate(3deg); filter: brightness(1.4); }
+  65%  { transform: scale(0.96) rotate(-1deg); filter: brightness(1.1); }
+  85%  { transform: scale(1.04) rotate(0.5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
 }
 
 .animate-sticker-place {
-  animation: sticker-place 0.4s ease-out;
+  animation: sticker-place 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Pop dourado ao colar */
+@keyframes sticker-gold-pop {
+  0%   { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.9), 0 2px 8px rgba(0,0,0,0.2); }
+  40%  { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0.3), 0 4px 20px rgba(212, 175, 55, 0.4); }
+  100% { box-shadow: 0 0 0 18px rgba(212, 175, 55, 0), 0 2px 8px rgba(0,0,0,0.2); }
+}
+
+.sticker-gold-pop {
+  animation: sticker-gold-pop 0.7s ease-out forwards;
 }
 
 /* ===== Modal Animation ===== */
@@ -175,11 +247,11 @@
 @keyframes zoom-in-95 {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.95) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -191,9 +263,46 @@
   animation-name: zoom-in-95;
 }
 
+/* ===== Confirm check animation ===== */
+@keyframes confirm-pop {
+  0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+  50%  { transform: scale(1.3) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-confirm-pop {
+  animation: confirm-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 /* ===== Perspective utility ===== */
 .perspective-1000 {
   perspective: 1000px;
+}
+
+/* ===== Realtime indicator pulse ===== */
+@keyframes realtime-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.realtime-pulse {
+  animation: realtime-pulse 1.5s ease-in-out infinite;
+}
+
+/* ===== Progress bar shimmer ===== */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.progress-shimmer {
+  background: linear-gradient(
+    90deg,
+    #D4AF37 0%,
+    #F2D372 30%,
+    #ffffff 50%,
+    #F2D372 70%,
+    #D4AF37 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
 }
 
 /* ===== Page transition ===== */

@@ -116,6 +116,57 @@ export function useCollection() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Supabase Realtime — recebe mudanças em tempo real ──────────────────────
+  useEffect(() => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl) return;
+
+    const channel = supabase
+      .channel(`collection-realtime-${deviceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'collections',
+          filter: `device_id=eq.${deviceId}`,
+        },
+        (payload) => {
+          // Atualiza o estado local imediatamente sem fazer nova sync ao servidor
+          if (!payload.new || typeof payload.new !== 'object') return;
+          const row = payload.new as { sticker_id: string; collected: boolean; repeated_count: number };
+
+          setState(prev => {
+            const nextCollected = new Set(prev.collected);
+            const nextRepeated = { ...prev.repeated };
+
+            if (row.collected) {
+              nextCollected.add(row.sticker_id);
+            } else {
+              nextCollected.delete(row.sticker_id);
+            }
+
+            if (row.repeated_count > 0) {
+              nextRepeated[row.sticker_id] = row.repeated_count;
+            } else {
+              delete nextRepeated[row.sticker_id];
+            }
+
+            const next = { collected: nextCollected, repeated: nextRepeated };
+            // Persiste localmente mas NÃO dispara sync (veio do servidor)
+            saveLocal(next);
+            return next;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deviceId]);
+
   // ── Sync to Supabase ────────────────────────────────────────────────────────
   const syncToServer = useCallback(async (newState: CollectionState) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -192,7 +243,7 @@ export function useCollection() {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       syncToServer(newState);
-    }, 1500);
+    }, 800);
   }, [syncToServer]);
 
   // ── Keep pendingStateRef current for beforeunload ───────────────────────────

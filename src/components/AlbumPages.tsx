@@ -1,12 +1,13 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
 import { StickerCard } from './StickerCard';
 import { getSection, SECTIONS } from '../data/sections';
 import { getStickerInfo } from '../data/stickers';
 
-const STICKERS_PER_PAGE = 20; // 20 per spread (10 per page)
+const STICKERS_PER_PAGE = 20; // 20 por spread (10 por página)
 
 type FilterMode = 'all' | 'missing' | 'repeated';
+type FlipDirection = 'forward' | 'backward' | null;
 
 interface AlbumPagesProps {
   activeSectionId: string;
@@ -23,6 +24,12 @@ interface AlbumPagesProps {
 export function AlbumPages({ activeSectionId, currentPage, onPageChange, collected, repeated, onShowModal, searchQuery, filterMode, onFilterChange }: AlbumPagesProps) {
   const section = getSection(activeSectionId);
 
+  const [flipClass, setFlipClass] = useState<string>('');
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [displayPage, setDisplayPage] = useState(currentPage);
+  const pendingPageRef = useRef<number | null>(null);
+  const pendingDirectionRef = useRef<FlipDirection>(null);
+
   const stickers = useMemo(() => {
     return Array.from({ length: section.count }, (_, i) => ({
       id: `${section.id} ${i + 1}`,
@@ -30,7 +37,7 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     }));
   }, [section]);
 
-  // Filter stickers by search query
+  // Filter stickers by search query (all sections)
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return null;
 
@@ -73,20 +80,67 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
 
   const totalPages = Math.ceil(filteredByMode.length / STICKERS_PER_PAGE);
 
-  const pageStickers = useMemo(() => {
-    const start = currentPage * STICKERS_PER_PAGE;
-    return filteredByMode.slice(start, start + STICKERS_PER_PAGE);
-  }, [filteredByMode, currentPage]);
+  // Keep displayPage in sync with currentPage (sem animação na troca de seção/filtro)
+  useEffect(() => {
+    setDisplayPage(currentPage);
+  }, [currentPage, activeSectionId, filterMode, searchQuery]);
 
-  // When filtering resets, reset page (inside useEffect to avoid side-effects during render)
+  const pageStickers = useMemo(() => {
+    const start = displayPage * STICKERS_PER_PAGE;
+    return filteredByMode.slice(start, start + STICKERS_PER_PAGE);
+  }, [filteredByMode, displayPage]);
+
+  // When filtering resets, reset page
   useEffect(() => {
     if (!searchQuery.trim() && currentPage > 0 && currentPage >= Math.ceil(section.count / STICKERS_PER_PAGE)) {
       onPageChange(0);
     }
   }, [searchQuery, currentPage, section.count, onPageChange]);
 
+  // ── Flip animation logic ───────────────────────────────────────────────────
+  const triggerFlip = useCallback((targetPage: number, direction: FlipDirection) => {
+    if (isAnimating) return;
+    if (targetPage < 0 || targetPage >= totalPages) return;
+
+    pendingPageRef.current = targetPage;
+    pendingDirectionRef.current = direction;
+    setIsAnimating(true);
+
+    // Phase 1: exit animation
+    setFlipClass(direction === 'forward' ? 'flip-out-forward' : 'flip-out-backward');
+
+    setTimeout(() => {
+      // Swap the page content mid-flip
+      setDisplayPage(pendingPageRef.current!);
+      onPageChange(pendingPageRef.current!);
+
+      // Phase 2: enter animation
+      setFlipClass(pendingDirectionRef.current === 'forward' ? 'flip-in-forward' : 'flip-in-backward');
+
+      setTimeout(() => {
+        setFlipClass('');
+        setIsAnimating(false);
+      }, 340);
+    }, 290);
+  }, [isAnimating, totalPages, onPageChange]);
+
+  const goNext = useCallback(() => triggerFlip(currentPage + 1, 'forward'), [currentPage, triggerFlip]);
+  const goPrev = useCallback(() => triggerFlip(currentPage - 1, 'backward'), [currentPage, triggerFlip]);
+
+  // ── Keyboard navigation ────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') goNext();
+      if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   goPrev();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [goNext, goPrev]);
+
   const secCollected = stickers.filter(s => collected.has(s.id)).length;
-  const secRepeated = stickers.reduce((acc, s) => acc + (repeated[s.id] || 0), 0);
+  const secRepeated  = stickers.reduce((acc, s) => acc + (repeated[s.id] || 0), 0);
+  const secProgress  = section.count > 0 ? Math.round((secCollected / section.count) * 100) : 0;
 
   const FILTERS: { mode: FilterMode; label: string; activeClass: string }[] = [
     { mode: 'all',      label: 'Todas',    activeClass: 'bg-panini-navy text-white' },
@@ -94,36 +148,63 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
     { mode: 'repeated', label: 'Repetidas',activeClass: 'bg-panini-gold text-panini-navy' },
   ];
 
-
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Page header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-panini-navy/10 px-4 sm:px-6 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between max-w-5xl mx-auto gap-3">
+
+      {/* ── Panini-style Section Header ─────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 relative overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${section.colors[0]} 0%, ${section.colors[1] || section.colors[0]} 60%, ${section.colors[2] || section.colors[1] || section.colors[0]} 100%)` }}
+      >
+        {/* decorative lines */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{ backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 1px, transparent 1px, transparent 40px)' }}
+        />
+        <div className="absolute right-0 top-0 bottom-0 w-32 opacity-20 pointer-events-none"
+          style={{ background: 'linear-gradient(to left, rgba(255,255,255,0.3), transparent)' }}
+        />
+
+        <div className="relative z-10 px-4 sm:px-6 py-3 flex items-center justify-between max-w-6xl mx-auto gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-lg leading-none shrink-0">{section.flag}</span>
+            <span className="text-3xl drop-shadow-lg shrink-0">{section.flag}</span>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black text-panini-navy uppercase tracking-tight leading-tight truncate">
+              <h2 className="text-lg sm:text-2xl font-black text-white uppercase tracking-tight leading-tight truncate drop-shadow-md"
+                  style={{ fontFamily: "'Oswald', 'Inter', sans-serif", letterSpacing: '-0.02em' }}>
                 {isFiltering ? 'Resultados da Busca' : section.name}
               </h2>
-              <p className="text-[10px] font-bold text-panini-burgundy uppercase tracking-wider">
-                {isFiltering
-                  ? `${filteredByMode.length} figurinhas encontradas`
-                  : `${secCollected}/${section.count} coladas · ${secRepeated} repetidas`}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                  {isFiltering
+                    ? `${filteredByMode.length} figurinhas encontradas`
+                    : `${secCollected}/${section.count} coladas · ${secRepeated} repetidas`}
+                </p>
+                {!isFiltering && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-16 bg-black/30 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${secProgress}%`,
+                          background: 'linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.95))'
+                        }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-black text-white/90">{secProgress}%</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Filter buttons */}
-            <div className="flex bg-panini-navy/5 border border-panini-navy/10 rounded-lg p-0.5 gap-0.5">
+            <div className="flex bg-black/20 border border-white/10 rounded-lg p-0.5 gap-0.5 backdrop-blur-sm">
               {FILTERS.map(f => (
                 <button
                   key={f.mode}
                   onClick={() => { onFilterChange(f.mode); onPageChange(0); }}
                   className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wide transition-all ${
-                    filterMode === f.mode ? f.activeClass : 'text-panini-navy/50 hover:text-panini-navy hover:bg-panini-navy/5'
+                    filterMode === f.mode ? f.activeClass : 'text-white/60 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {f.label}
@@ -133,51 +214,60 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
 
             {/* Pagination */}
             <button
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 0}
-              className="p-1.5 rounded-lg bg-panini-navy/5 hover:bg-panini-navy/10 disabled:opacity-20 disabled:hover:bg-panini-navy/5 transition-all border border-panini-navy/10"
-              aria-label="Página anterior"
+              onClick={goPrev}
+              disabled={currentPage === 0 || isAnimating}
+              className="p-1.5 rounded-lg bg-black/20 hover:bg-black/40 disabled:opacity-30 disabled:hover:bg-black/20 transition-all border border-white/20 backdrop-blur-sm"
+              aria-label="Página anterior (←)"
+              title="Página anterior (tecla ←)"
             >
-              <ChevronLeft size={18} className="text-panini-navy" />
+              <ChevronLeft size={18} className="text-white" />
             </button>
-            <span className="text-xs font-bold text-panini-navy/60 min-w-[4rem] text-center">
-              Pág. {currentPage + 1}/{Math.max(1, totalPages)}
+            <span className="text-xs font-bold text-white/80 min-w-[4.5rem] text-center tabular-nums">
+              {currentPage + 1} / {Math.max(1, totalPages)}
             </span>
             <button
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages - 1}
-              className="p-1.5 rounded-lg bg-panini-navy/5 hover:bg-panini-navy/10 disabled:opacity-20 disabled:hover:bg-panini-navy/5 transition-all border border-panini-navy/10"
-              aria-label="Próxima página"
+              onClick={goNext}
+              disabled={currentPage >= totalPages - 1 || isAnimating}
+              className="p-1.5 rounded-lg bg-black/20 hover:bg-black/40 disabled:opacity-30 disabled:hover:bg-black/20 transition-all border border-white/20 backdrop-blur-sm"
+              aria-label="Próxima página (→)"
+              title="Próxima página (tecla →)"
             >
-              <ChevronRight size={18} className="text-panini-navy" />
+              <ChevronRight size={18} className="text-white" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Album Book Spread */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar flex items-start justify-center p-4 sm:p-8 perspective-1000">
-        <div className="w-full max-w-6xl relative album-cover-shadow bg-panini-slot rounded-md">
+      {/* ── Album Book Spread ──────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar flex items-start justify-center p-3 sm:p-6 lg:p-8 album-spread-wrapper">
+        <div className={`w-full max-w-6xl relative album-cover-shadow rounded-md album-spread ${flipClass}`}>
+
           {/* Book Spread Container */}
           <div className="flex flex-col md:flex-row relative z-10 w-full min-h-[80vh] md:min-h-[600px]">
-            
-            {/* LEFT PAGE */}
-            <div className="w-full md:w-1/2 bg-white paper-texture-sm album-page-left flex flex-col relative z-10">
-              {/* Panini Style Header (only on first page of section, or just repeat it) */}
-              <div className="h-16 flex items-stretch">
-                <div className="w-4 bg-panini-navy" style={{ backgroundColor: section.colors[0] }}></div>
-                <div className="flex-1 bg-gradient-to-r from-panini-navy to-panini-blue flex items-center px-4 justify-between" style={{ background: `linear-gradient(to right, ${section.colors[0]}, ${section.colors[1] || '#1A3668'})` }}>
-                  <span className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-md">
+
+            {/* ── LEFT PAGE ───────────────────────────────────────────── */}
+            <div className="w-full md:w-1/2 paper-texture-sm album-page-left flex flex-col relative z-10">
+              {/* Panini-style page header */}
+              <div className="h-14 flex items-stretch shrink-0">
+                <div className="w-3 shrink-0" style={{ backgroundColor: section.colors[0] }} />
+                <div
+                  className="flex-1 flex items-center px-4 justify-between"
+                  style={{ background: `linear-gradient(to right, ${section.colors[0]}, ${section.colors[1] || '#1A3668'})` }}
+                >
+                  <span
+                    className="text-xl sm:text-2xl font-black text-white uppercase drop-shadow-md tracking-tight"
+                    style={{ fontFamily: "'Oswald', 'Inter', sans-serif" }}
+                  >
                     {isFiltering ? 'Busca' : section.name}
                   </span>
-                  <span className="text-4xl drop-shadow-lg">{section.flag}</span>
+                  <span className="text-3xl drop-shadow-lg">{section.flag}</span>
                 </div>
               </div>
-              
+
               {/* Stickers grid left */}
-              <div className="p-4 sm:p-6 flex-1 flex flex-col">
+              <div className="p-3 sm:p-5 flex-1 flex flex-col">
                 {pageStickers.slice(0, 10).length > 0 ? (
-                  <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
                     {pageStickers.slice(0, 10).map(s => (
                       <StickerCard
                         key={s.id}
@@ -191,37 +281,39 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
                     ))}
                   </div>
                 ) : (
-                  <div className="py-10 text-center flex flex-col items-center gap-3">
-                    {/* Empty search state handled below if both are empty */}
-                  </div>
+                  <div className="py-10 text-center flex flex-col items-center gap-3" />
                 )}
               </div>
 
               {/* Page footer */}
-              <div className="flex items-center justify-between px-5 py-3 border-t border-black/5 mt-auto">
-                 <span className="text-[10px] font-bold text-black/30 uppercase tracking-widest">{section.id}</span>
-                 <span className="text-[10px] font-bold text-black/30">{currentPage * 2 + 1}</span>
+              <div className="flex items-center justify-between px-5 py-2.5 border-t border-black/5 mt-auto shrink-0">
+                <span className="text-[9px] font-bold text-black/25 uppercase tracking-widest">{section.id}</span>
+                <span className="text-[9px] font-bold text-black/25 tabular-nums">{displayPage * 2 + 1}</span>
               </div>
             </div>
 
-            {/* Book Spine Overlay (Desktop only) */}
-            <div className="hidden md:block absolute inset-y-0 left-1/2 -ml-4 w-8 album-spine-overlay z-20 pointer-events-none"></div>
+            {/* Book Spine Overlay (Desktop) */}
+            <div className="hidden md:block absolute inset-y-0 left-1/2 -ml-4 w-8 album-spine-overlay z-20 pointer-events-none" />
 
-            {/* RIGHT PAGE */}
-            <div className="w-full md:w-1/2 bg-white paper-texture-sm album-page-right flex flex-col relative z-10 border-t border-dashed border-black/10 md:border-t-0 md:border-l md:border-solid md:border-black/5">
-              {/* Optional header for right page, or just keep it simple */}
-              <div className="h-16 flex items-stretch">
-                <div className="flex-1 bg-gradient-to-r from-panini-blue to-white/10 flex items-center px-4 justify-end" style={{ background: `linear-gradient(to right, ${section.colors[1] || '#1A3668'}, rgba(255,255,255,0.1))` }}>
-                   <span className="text-xl font-black text-black/10 uppercase tracking-tighter">
-                     {section.confederation}
-                   </span>
+            {/* ── RIGHT PAGE ──────────────────────────────────────────── */}
+            <div className="w-full md:w-1/2 paper-texture-sm album-page-right flex flex-col relative z-10 border-t border-dashed border-black/10 md:border-t-0 md:border-l md:border-solid md:border-black/5">
+              {/* Right page header */}
+              <div className="h-14 flex items-stretch shrink-0">
+                <div
+                  className="flex-1 flex items-center px-4 justify-end"
+                  style={{ background: `linear-gradient(to right, ${section.colors[1] || '#1A3668'}, rgba(255,255,255,0.05))` }}
+                >
+                  <span className="text-lg font-black text-black/10 uppercase tracking-tighter">
+                    {section.confederation}
+                  </span>
                 </div>
+                <div className="w-3 shrink-0" style={{ backgroundColor: section.colors[1] || section.colors[0] }} />
               </div>
 
               {/* Stickers grid right */}
-              <div className="p-4 sm:p-6 flex-1 flex flex-col">
+              <div className="p-3 sm:p-5 flex-1 flex flex-col">
                 {pageStickers.slice(10, 20).length > 0 ? (
-                  <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
                     {pageStickers.slice(10, 20).map(s => (
                       <StickerCard
                         key={s.id}
@@ -256,9 +348,9 @@ export function AlbumPages({ activeSectionId, currentPage, onPageChange, collect
               </div>
 
               {/* Page footer */}
-              <div className="flex items-center justify-between px-5 py-3 border-t border-black/5 mt-auto">
-                 <span className="text-[10px] font-bold text-black/30">Copa 2026</span>
-                 <span className="text-[10px] font-bold text-black/30">{currentPage * 2 + 2}</span>
+              <div className="flex items-center justify-between px-5 py-2.5 border-t border-black/5 mt-auto shrink-0">
+                <span className="text-[9px] font-bold text-black/25">Copa do Mundo 2026</span>
+                <span className="text-[9px] font-bold text-black/25 tabular-nums">{displayPage * 2 + 2}</span>
               </div>
             </div>
 

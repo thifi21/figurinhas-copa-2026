@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Menu, Cloud, Search, Printer, AlertTriangle, Layers } from 'lucide-react';
+import { Menu, Search, Printer, AlertTriangle, Layers, Wifi, WifiOff } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { AlbumPages } from './components/AlbumPages';
 import { StickerModal } from './components/StickerModal';
@@ -38,7 +38,6 @@ export default function App() {
     setSelectedSticker(id);
   }, []);
 
-  // Reset page when search changes
   const handleSearchChange = useCallback((q: string) => {
     setSearchQuery(q);
     setCurrentPage(0);
@@ -58,38 +57,74 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col bg-transparent font-sans overflow-hidden">
-      {/* Sleek Floating Header */}
-      <header className="z-30 flex-shrink-0 p-2 sm:p-4 pointer-events-none">
-        <div className="max-w-5xl mx-auto flex items-center justify-between glass-panel px-3 sm:px-5 py-2 pointer-events-auto">
+
+      {/* ── Panini 2026 Header ───────────────────────────────────────────── */}
+      <header className="z-30 flex-shrink-0 relative overflow-hidden">
+        {/* Gradient bar — azul Panini → vinho */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(135deg, #06101a 0%, #0d1b2a 30%, #112040 60%, #3a0d1e 100%)'
+          }}
+        />
+        {/* Gold bottom edge */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px]"
+          style={{ background: 'linear-gradient(90deg, transparent 0%, #D4AF37 20%, #F2D372 50%, #D4AF37 80%, transparent 100%)' }}
+        />
+        {/* subtle diagonal lines */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{ backgroundImage: 'repeating-linear-gradient(-45deg, #ffffff 0px, #ffffff 1px, transparent 1px, transparent 12px)' }}
+        />
+
+        <div className="relative z-10 flex items-center justify-between px-3 sm:px-5 py-2.5">
+
+          {/* Left: Menu + Logo */}
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              className="p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10 text-white"
+              className="p-1.5 bg-white/8 rounded-lg hover:bg-white/15 transition-colors border border-white/10 text-white"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu de seções"
             >
               <Menu size={20} className="text-panini-lightgold" />
             </button>
 
-            {/* Album logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-panini-gold to-yellow-600 flex items-center justify-center shadow-lg border border-yellow-300/30">
-                <span className="text-panini-navy font-black text-sm sm:text-base">26</span>
+            {/* FWC 2026 Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-9 h-9 sm:w-11 sm:h-11 shrink-0">
+                {/* Hexagonal badge */}
+                <div
+                  className="absolute inset-0 rounded-lg flex items-center justify-center shadow-lg border border-yellow-400/20"
+                  style={{ background: 'linear-gradient(135deg, #D4AF37 0%, #F2D372 45%, #b89326 100%)' }}
+                >
+                  <span className="text-[#0d1b2a] font-black text-sm sm:text-base leading-none">
+                    26
+                  </span>
+                </div>
+                {/* small FIFA badge */}
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-panini-burgundy rounded-full border-2 border-[#0d1b2a] flex items-center justify-center">
+                  <span className="text-[5px] font-black text-white leading-none">FIFA</span>
+                </div>
               </div>
-              <div>
-                <h1 className="text-sm sm:text-lg font-black tracking-tight leading-tight text-white">
-                  COPA 2026
+
+              <div className="hidden xs:block">
+                <h1
+                  className="text-sm sm:text-lg font-black tracking-tight leading-tight text-white uppercase"
+                  style={{ fontFamily: "'Oswald', 'Inter', sans-serif", letterSpacing: '-0.02em' }}
+                >
+                  Copa do Mundo
                 </h1>
-                <p className="text-[8px] sm:text-[10px] font-bold text-white/70 uppercase tracking-[0.2em] leading-tight">
-                  Álbum de Figurinhas
+                <p className="text-[8px] sm:text-[10px] font-bold text-panini-lightgold/80 uppercase tracking-[0.2em] leading-tight">
+                  Álbum Panini · 2026
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 relative">
+          {/* Right: actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Search toggle (mobile) + search bar (desktop) */}
             <button
-              className="sm:hidden p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
+              className="sm:hidden p-1.5 bg-white/8 rounded-lg hover:bg-white/15 transition-colors border border-white/10"
               onClick={() => setShowSearch(!showSearch)}
               aria-label="Buscar figurinha"
             >
@@ -107,62 +142,78 @@ export default function App() {
 
             {/* Export button */}
             <button
-              className="p-1.5 sm:px-3 sm:py-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10 flex items-center gap-2"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white/8 rounded-lg hover:bg-white/15 transition-colors border border-white/10 flex items-center gap-1.5"
               onClick={() => setShowExport(true)}
               title="Exportar lista de trocas"
               aria-label="Exportar lista de trocas"
             >
-              <Layers size={18} className="text-panini-lightgold" />
-              <span className="hidden sm:inline text-xs font-bold text-panini-lightgold uppercase">Trocas</span>
+              <Layers size={17} className="text-panini-lightgold" />
+              <span className="hidden sm:inline text-[11px] font-bold text-panini-lightgold uppercase tracking-wide">Trocas</span>
             </button>
 
             {/* Print button */}
             <button
-              className="p-1.5 sm:px-3 sm:py-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors border border-white/10 flex items-center gap-2"
+              className="p-1.5 sm:px-3 sm:py-1.5 bg-white/8 rounded-lg hover:bg-white/15 transition-colors border border-white/10 flex items-center gap-1.5"
               onClick={() => setView('print')}
               title="Imprimir Checklist PDF"
               aria-label="Imprimir checklist em PDF"
             >
-              <Printer size={18} className="text-panini-lightgold" />
-              <span className="hidden sm:inline text-xs font-bold text-panini-lightgold uppercase">PDF</span>
+              <Printer size={17} className="text-panini-lightgold" />
+              <span className="hidden sm:inline text-[11px] font-bold text-panini-lightgold uppercase tracking-wide">PDF</span>
             </button>
 
-            {/* Sync indicator */}
+            {/* Realtime / Sync indicator */}
             {hasSupabase && (
-              <div className={`hidden sm:flex items-center gap-1 text-[10px] font-bold transition-colors ${
-                syncError ? 'text-red-400' : syncing ? 'text-yellow-400' : 'text-green-400/70'
-              }`}>
-                {syncError
-                  ? <AlertTriangle size={12} />
+              <div className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all ${
+                syncError
+                  ? 'text-red-400 border-red-500/20 bg-red-500/5'
                   : syncing
-                    ? <Cloud size={12} className="animate-pulse" />
-                    : <Cloud size={12} />
-                }
-                <span className="hidden lg:inline">
-                  {syncError ? 'Erro sync' : syncing ? 'Sincronizando...' : 'Salvo'}
-                </span>
+                    ? 'text-yellow-400 border-yellow-400/20 bg-yellow-400/5'
+                    : 'text-green-400 border-green-400/20 bg-green-400/5'
+              }`}>
+                {syncError ? (
+                  <>
+                    <AlertTriangle size={12} />
+                    <span className="hidden lg:inline">Erro</span>
+                  </>
+                ) : syncing ? (
+                  <>
+                    <Wifi size={12} className="animate-pulse" />
+                    <span className="hidden lg:inline">Salvando…</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 realtime-pulse" />
+                    <WifiOff size={0} className="hidden" />
+                    <span className="hidden lg:inline">Ao vivo</span>
+                  </>
+                )}
               </div>
             )}
 
-            {/* Progress bar */}
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="text-right">
-                <div className="text-[10px] font-bold text-panini-lightgold uppercase tracking-widest">Coleção</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white/80">{totalCollected}/{TOTAL_STICKERS}</span>
-                  <div className="w-20 bg-black/40 rounded-full h-2 overflow-hidden border border-white/10">
+            {/* Progress badge */}
+            <div className="flex items-center gap-2">
+              {/* Mini progress bar — desktop */}
+              <div className="hidden md:flex flex-col items-end gap-0.5">
+                <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Coleção</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-white/60 tabular-nums">{totalCollected}/{TOTAL_STICKERS}</span>
+                  <div className="w-20 bg-black/40 rounded-full h-1.5 overflow-hidden border border-white/10">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-panini-gold via-yellow-400 to-panini-gold transition-all duration-500 shadow-[0_0_8px_rgba(212,175,55,0.4)]"
+                      className="h-full rounded-full progress-shimmer transition-all duration-700"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Progress percentage badge */}
-            <div className="bg-white/10 backdrop-blur-sm border border-panini-gold/30 rounded-xl px-2.5 py-1 sm:px-3 sm:py-1.5">
-              <span className="text-base sm:text-xl font-black text-panini-lightgold drop-shadow-md">{progress}%</span>
+              {/* Percentage badge */}
+              <div
+                className="border border-panini-gold/30 rounded-xl px-2.5 py-1 sm:px-3 sm:py-1.5"
+                style={{ background: 'rgba(212,175,55,0.08)', backdropFilter: 'blur(8px)' }}
+              >
+                <span className="text-base sm:text-xl font-black text-panini-lightgold drop-shadow-md tabular-nums">{progress}%</span>
+              </div>
             </div>
           </div>
         </div>
@@ -175,21 +226,21 @@ export default function App() {
         </div>
       )}
 
-      {/* Main layout (Desk area) */}
-      <div className="flex-1 flex overflow-hidden relative items-center justify-center p-2 sm:p-4 lg:p-8">
-        {/* Sidebar is now absolute overlay to preserve book illusion */}
+      {/* ── Main layout ──────────────────────────────────────────────────── */}
+      <div className="flex-1 flex overflow-hidden relative items-stretch justify-center">
+        {/* Sidebar overlay */}
         <div className={`absolute inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <Sidebar
-            isOpen={true} // Force open visually, controlled by translate-x
+            isOpen={true}
             onClose={() => setSidebarOpen(false)}
             activeSectionId={activeSectionId}
             onSectionChange={handleSectionChange}
             collected={collected}
           />
         </div>
-        {/* Backdrop for sidebar */}
+        {/* Backdrop */}
         {sidebarOpen && (
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 z-30 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
